@@ -1,0 +1,60 @@
+.login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.caja { background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio); padding: 32px; width: min(380px, 100%); display: grid; gap: 12px; }
+.caja h1 { font-size: 1.6rem; }
+label { font-size: .9rem; color: var(--tinta-suave); display: block; margin-bottom: 4px; }
+input, select { width: 100%; padding: 11px 13px; border: 1.5px solid var(--linea); border-radius: 10px; background: #fff; }
+.btn-principal { border: 0; background: var(--acento); color: #fff; padding: 12px 18px; border-radius: 10px; font-weight: 700; }
+.btn-principal:hover { background: var(--acento-oscuro); }
+.btn-secundario { border: 1.5px solid var(--linea); background: #fff; padding: 9px 14px; border-radius: 10px; font-weight: 500; }
+.btn-secundario:hover { border-color: var(--acento); }
+.error { color: var(--alerta); font-size: .9rem; }
+.volver { text-align: center; font-size: .9rem; color: var(--tinta-suave); }
+
+.pestanas { display: flex; gap: 6px; padding: 12px clamp(16px, 4vw, 48px) 0; border-bottom: 1px solid var(--linea); background: var(--superficie); overflow-x: auto; }
+.pestana { border: 0; background: none; padding: 12px 18px; font-weight: 700; color: var(--tinta-suave); border-bottom: 3px solid transparent; white-space: nowrap; }
+.pestana.activa { color: var(--tinta); border-bottom-color: var(--acento); }
+.contenido { max-width: 1100px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 48px) 60px; }
+.contenido h2 { font-size: 1.3rem; margin: 28px 0 14px; }
+.contenido h2:first-child { margin-top: 0; }
+.tab[hidden] { display: none; }
+
+/* Ventas */
+.metricas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.metrica { background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio); padding: 20px; }
+.metrica span { color: var(--tinta-suave); font-size: .95rem; }
+.metrica strong { display: block; font-family: "Bricolage Grotesque", sans-serif; font-size: 2rem; margin: 4px 0; }
+.metrica small { color: var(--tinta-suave); }
+.grafica { display: flex; align-items: flex-end; gap: 12px; height: 220px; background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio); padding: 20px 20px 12px; }
+.barra-dia { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 6px; font-size: .8rem; color: var(--tinta-suave); }
+.barra-dia .col { width: 100%; max-width: 56px; background: var(--acento); border-radius: 8px 8px 0 0; min-height: 3px; }
+.barra-dia b { color: var(--tinta); font-size: .8rem; }
+.nota { margin-top: 10px; font-size: .9rem; color: var(--tinta-suave); }
+
+/* Pedidos */
+.fila-titulo { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.fila-titulo h2 { margin: 0 !important; }
+.fila-titulo select { width: auto; }
+.pedido { background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio); padding: 18px; margin-bottom: 14px; }
+.pedido-cab { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.pedido ul { margin: 10px 0 12px 18px; }
+.etiqueta { padding: 3px 12px; border-radius: 999px; font-size: .85rem; font-weight: 700; }
+.etiqueta.pendiente { background: #fff1d6; color: #8a5a00; }
+.etiqueta.completado { background: var(--menta); color: #0b6b4b; }
+.etiqueta.cancelado { background: #ffe3e3; color: #a12b2b; }
+.acciones-pedido { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.acciones-pedido strong { margin-right: auto; font-size: 1.1rem; }
+.btn-vender { border: 0; background: var(--wa); color: #fff; padding: 9px 16px; border-radius: 10px; font-weight: 700; }
+.btn-cancelar { border: 1.5px solid var(--linea); background: #fff; color: var(--alerta); padding: 9px 16px; border-radius: 10px; }
+
+/* Inventario */
+.form-producto { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; align-items: end; background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio); padding: 20px; }
+.tabla-scroll { overflow-x: auto; background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio); }
+table { width: 100%; border-collapse: collapse; min-width: 640px; }
+th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--linea); }
+th { font-size: .85rem; color: var(--tinta-suave); font-weight: 500; }
+td input[type=number] { width: 100px; padding: 7px 9px; }
+.stock-ctrl { display: flex; align-items: center; gap: 6px; }
+.stock-ctrl button { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--linea); background: #fff; }
+.stock-ctrl input { width: 70px !important; text-align: center; }
+.stock-bajo input { border-color: var(--alerta); color: var(--alerta); }
+.btn-borrar { border: 0; background: none; color: var(--alerta); }

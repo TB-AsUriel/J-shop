@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administración | iStore Accesorios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <!-- Acceso -->
+  <section id="login" class="login">
+    <form id="formLogin" class="caja">
+      <h1>Administrar tienda</h1>
+      <label for="clave">Contraseña</label>
+      <input id="clave" type="password" autocomplete="current-password" required>
+      <button class="btn-principal" type="submit">Entrar</button>
+      <p id="errorLogin" class="error" hidden>Contraseña incorrecta. Inténtalo de nuevo.</p>
+      <a href="index.html" class="volver">Volver al catálogo</a>
+    </form>
+  </section>
+
+  <!-- Panel -->
+  <div id="panelAdmin" hidden>
+    <header class="barra">
+      <a class="marca" href="admin.html">iStore<span>Administración</span></a>
+      <div class="barra-acciones">
+        <a class="enlace-admin" href="index.html">Ver catálogo</a>
+        <button id="btnSalir" class="btn-secundario">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <nav class="pestanas" role="tablist">
+      <button class="pestana activa" data-tab="ventas" role="tab">Ventas</button>
+      <button class="pestana" data-tab="pedidos" role="tab">Pedidos <span id="badgePedidos" class="contador"></span></button>
+      <button class="pestana" data-tab="inventario" role="tab">Inventario</button>
+    </nav>
+
+    <main class="contenido">
+      <!-- VENTAS -->
+      <section id="tab-ventas" class="tab">
+        <div class="metricas" id="metricas"></div>
+        <h2>Ventas de los últimos 7 días</h2>
+        <div id="grafica" class="grafica"></div>
+        <p class="nota">Solo cuentan los pedidos marcados como vendidos.</p>
+      </section>
+
+      <!-- PEDIDOS -->
+      <section id="tab-pedidos" class="tab" hidden>
+        <div class="fila-titulo">
+          <h2>Pedidos</h2>
+          <select id="filtroEstado" aria-label="Filtrar por estado">
+            <option value="todos">Todos</option>
+            <option value="pendiente" selected>Pendientes</option>
+            <option value="completado">Vendidos</option>
+            <option value="cancelado">Cancelados</option>
+          </select>
+        </div>
+        <div id="listaPedidos"></div>
+      </section>
+
+      <!-- INVENTARIO -->
+      <section id="tab-inventario" class="tab" hidden>
+        <h2>Agregar producto</h2>
+        <form id="formProducto" class="form-producto">
+          <div><label for="pNombre">Nombre</label><input id="pNombre" required></div>
+          <div><label for="pCategoria">Categoría</label><select id="pCategoria"></select></div>
+          <div><label for="pPrecio">Precio</label><input id="pPrecio" type="number" min="0" step="0.01" required></div>
+          <div><label for="pStock">Stock</label><input id="pStock" type="number" min="0" step="1" required></div>
+          <div><label for="pImagen">Foto (opcional)</label><input id="pImagen" type="file" accept="image/*"></div>
+          <button class="btn-principal" type="submit">Agregar al catálogo</button>
+        </form>
+
+        <h2>Productos en catálogo</h2>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th></th></tr></thead>
+            <tbody id="tablaProductos"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

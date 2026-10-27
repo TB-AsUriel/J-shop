@@ -1,0 +1,85 @@
+:root {
+  --fondo: #f2f5f8;
+  --superficie: #ffffff;
+  --tinta: #17202e;
+  --tinta-suave: #5a6678;
+  --linea: #dde3ea;
+  --acento: #2f5bff;
+  --acento-oscuro: #2146d6;
+  --menta: #d4f1e6;
+  --alerta: #d9480f;
+  --wa: #1fa855;
+  --wa-oscuro: #178a45;
+  --radio: 14px;
+}
+* { box-sizing: border-box; margin: 0; }
+body { font-family: "Figtree", system-ui, sans-serif; background: var(--fondo); color: var(--tinta); line-height: 1.5; }
+h1, h2, h3, .marca { font-family: "Bricolage Grotesque", "Figtree", sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+/* Barra superior */
+.barra { position: sticky; top: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px clamp(16px, 4vw, 48px); background: rgba(255,255,255,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--linea); }
+.marca { font-size: 1.35rem; font-weight: 800; text-decoration: none; color: var(--tinta); }
+.marca span { font-weight: 600; color: var(--acento); margin-left: 6px; }
+.barra-acciones { display: flex; align-items: center; gap: 16px; }
+.enlace-admin { font-size: .9rem; color: var(--tinta-suave); text-decoration: none; }
+.enlace-admin:hover { color: var(--acento); }
+.btn-carrito { display: flex; align-items: center; gap: 8px; border: 0; background: var(--tinta); color: #fff; padding: 10px 16px; border-radius: 999px; font-weight: 700; }
+.contador { background: var(--acento); border-radius: 999px; min-width: 24px; padding: 0 7px; text-align: center; font-size: .85rem; }
+
+/* Portada */
+.portada { padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 48px) 24px; max-width: 1100px; margin: 0 auto; }
+.portada h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.05; font-weight: 800; max-width: 16ch; }
+.portada p { margin: 14px 0 22px; color: var(--tinta-suave); font-size: 1.1rem; max-width: 52ch; }
+.buscador input { width: 100%; max-width: 520px; padding: 14px 18px; border: 1.5px solid var(--linea); border-radius: 999px; background: var(--superficie); }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.chip { display: flex; align-items: center; gap: 8px; padding: 9px 16px; border: 1.5px solid var(--linea); border-radius: 999px; background: var(--superficie); font-weight: 500; }
+.chip:hover { border-color: var(--acento); }
+.chip.activo { background: var(--acento); border-color: var(--acento); color: #fff; }
+
+/* Catálogo */
+.catalogo { max-width: 1100px; margin: 0 auto; padding: 8px clamp(16px, 4vw, 48px) 110px; }
+.rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+.tarjeta { background: var(--superficie); border-radius: var(--radio); overflow: hidden; border: 1px solid var(--linea); display: flex; flex-direction: column; }
+.tarjeta-img { aspect-ratio: 4 / 3; background: var(--menta); display: grid; place-items: center; font-size: 4rem; }
+.tarjeta-img img { width: 100%; height: 100%; object-fit: cover; }
+.tarjeta-cuerpo { padding: 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.tarjeta h3 { font-size: 1.05rem; font-weight: 600; line-height: 1.25; }
+.categoria { font-size: .85rem; color: var(--tinta-suave); }
+.precio { font-size: 1.35rem; font-weight: 700; margin-top: auto; }
+.pocas { font-size: .85rem; color: var(--alerta); font-weight: 700; }
+.btn-agregar { margin-top: 8px; border: 0; background: var(--acento); color: #fff; padding: 11px; border-radius: 10px; font-weight: 700; }
+.btn-agregar:hover { background: var(--acento-oscuro); }
+.vacio { grid-column: 1 / -1; text-align: center; padding: 48px 16px; color: var(--tinta-suave); }
+
+/* Panel de pedido */
+.velo { position: fixed; inset: 0; background: rgba(23,32,46,.45); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 30; }
+.velo.visible { opacity: 1; pointer-events: auto; }
+.panel { position: fixed; top: 0; right: 0; height: 100%; width: min(420px, 100%); background: var(--superficie); z-index: 40; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s; }
+.panel.abierto { transform: none; }
+.panel-cabecera { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--linea); }
+.btn-icono { border: 0; background: transparent; font-size: 1.2rem; padding: 6px 10px; }
+.items { flex: 1; overflow-y: auto; padding: 8px 20px; }
+.item { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 14px 0; border-bottom: 1px solid var(--linea); }
+.item-nombre { font-weight: 600; }
+.item-precio { font-weight: 700; }
+.cantidad { display: flex; align-items: center; gap: 10px; }
+.cantidad button { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--linea); background: #fff; }
+.item-quitar { border: 0; background: none; color: var(--alerta); font-size: .85rem; text-align: right; }
+.panel-pie { padding: 18px 20px 22px; border-top: 1px solid var(--linea); display: grid; gap: 10px; }
+.total { display: flex; justify-content: space-between; font-size: 1.2rem; }
+.panel-pie label { font-size: .9rem; color: var(--tinta-suave); }
+.panel-pie input { padding: 12px 14px; border: 1.5px solid var(--linea); border-radius: 10px; }
+.btn-wa { border: 0; background: var(--wa); color: #fff; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 1rem; }
+.btn-wa:hover { background: var(--wa-oscuro); }
+.btn-wa:disabled { opacity: .5; cursor: not-allowed; }
+
+/* WhatsApp flotante y aviso */
+.wa-flotante { position: fixed; right: 18px; bottom: 18px; z-index: 15; background: var(--wa); color: #fff; text-decoration: none; font-weight: 700; padding: 13px 20px; border-radius: 999px; box-shadow: 0 6px 18px rgba(23,32,46,.25); }
+.wa-flotante:hover { background: var(--wa-oscuro); }
+#aviso { position: fixed; left: 50%; bottom: 80px; transform: translate(-50%, 20px); background: var(--tinta); color: #fff; padding: 12px 20px; border-radius: 10px; opacity: 0; transition: .25s; z-index: 60; pointer-events: none; }
+#aviso.visible { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
