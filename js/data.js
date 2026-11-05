@@ -1,8 +1,8 @@
 /* ===== Configuración general (edita aquí) ===== */
 const CONFIG = {
-  tienda: "iStore Accesorios",
+  tienda: "J-Shop",
   // Número con lada de país y sin "+" ni espacios. Ej. México: 52 + 10 dígitos
-  whatsapp: "5210000000000",
+  whatsapp: "522224809352",
   moneda: "$",
   adminPassword: "admin123" // CÁMBIALA. Solo es protección de demostración
 };
@@ -18,12 +18,12 @@ const CATEGORIAS = [
 ];
 
 const PRODUCTOS_INICIALES = [
-  { id: "p1", nombre: "EarPods con conector Lightning", categoria: "audifonos-cable", precio: 450, stock: 12, imagen: "" },
-  { id: "p2", nombre: "Audífonos Bluetooth con estuche de carga", categoria: "audifonos-inalambricos", precio: 899, stock: 8, imagen: "" },
-  { id: "p3", nombre: "Cable USB-C a Lightning 1 m", categoria: "cables", precio: 249, stock: 25, imagen: "" },
-  { id: "p4", nombre: "Cargador de pared 20 W USB-C", categoria: "cargadores", precio: 329, stock: 15, imagen: "" },
-  { id: "p5", nombre: "Funda de silicón transparente", categoria: "fundas", precio: 199, stock: 3, imagen: "" },
-  { id: "p6", nombre: "Reloj inteligente con llamadas", categoria: "relojes", precio: 1290, stock: 5, imagen: "" }
+  { id: "p1", nombre: "EarPods con conector Lightning", categoria: "audifonos-cable", precio: 450, stock: 12, imagen: "img/earpods.jpg" },
+  { id: "p2", nombre: "Audífonos Bluetooth con estuche de carga", categoria: "audifonos-inalambricos", precio: 899, stock: 8, imagen: "img/audifonos-bt.jpg" },
+  { id: "p3", nombre: "Cable USB-C a Lightning 1 m", categoria: "cables", precio: 249, stock: 25, imagen: "img/cable.jpg" },
+  { id: "p4", nombre: "Cargador de pared 20 W USB-C", categoria: "cargadores", precio: 329, stock: 15, imagen: "img/cargador.jpg" },
+  { id: "p5", nombre: "Funda de silicón transparente", categoria: "fundas", precio: 199, stock: 3, imagen: "img/funda.jpg" },
+  { id: "p6", nombre: "Reloj inteligente con llamadas", categoria: "relojes", precio: 1290, stock: 5, imagen: "img/reloj.jpg" }
 ];
 
 /* ===== Capa de datos (localStorage) ===== */
@@ -37,7 +37,18 @@ const DB = {
   guardar(clave, valor) { localStorage.setItem(clave, JSON.stringify(valor)); },
   productos() {
     let lista = this.leer("productos", null);
-    if (!lista) { lista = PRODUCTOS_INICIALES; this.guardar("productos", lista); }
+    if (!lista) {
+      lista = PRODUCTOS_INICIALES.map(p => ({ ...p }));
+      this.guardar("productos", lista);
+      return lista;
+    }
+    // Migración: rellena fotos faltantes de los productos base
+    const base = Object.fromEntries(PRODUCTOS_INICIALES.map(p => [p.id, p]));
+    let cambio = false;
+    lista.forEach(p => {
+      if (!p.imagen && base[p.id]?.imagen) { p.imagen = base[p.id].imagen; cambio = true; }
+    });
+    if (cambio) this.guardar("productos", lista);
     return lista;
   },
   guardarProductos(l) { this.guardar("productos", l); },

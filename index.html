@@ -3,43 +3,111 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>iStore Accesorios | Accesorios para iPhone</title>
+  <title>J-Shop | Accesorios para iPhone</title>
+  <meta name="description" content="J-Shop: accesorios para iPhone con envío rápido. Audífonos, cargadores, cables, fundas y relojes. Arma tu pedido y envíalo por WhatsApp.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <header class="barra">
-    <a class="marca" href="index.html">iStore<span>Accesorios</span></a>
+    <a class="marca" href="index.html" aria-label="J-Shop inicio">
+      <span class="marca-icono">J</span>
+      <span class="marca-texto">J-Shop<small>Accesorios</small></span>
+    </a>
+    <nav class="barra-nav" aria-label="Navegación principal">
+      <a href="#catalogo">Catálogo</a>
+      <a href="#beneficios">Beneficios</a>
+    </nav>
     <div class="barra-acciones">
       <a class="enlace-admin" href="admin.html">Administrar tienda</a>
       <button id="btnCarrito" class="btn-carrito" aria-label="Abrir pedido">
-        Mi pedido <span id="contadorCarrito" class="contador">0</span>
+        <span class="carrito-icono" aria-hidden="true">🛍️</span>
+        <span class="carrito-texto">Mi pedido</span>
+        <span id="contadorCarrito" class="contador">0</span>
       </button>
     </div>
   </header>
 
   <main>
     <section class="portada">
-      <h1>Todo lo que tu iPhone necesita, en stock hoy</h1>
-      <p>Elige tus accesorios, arma tu pedido y envíalo por WhatsApp.</p>
-      <div class="buscador">
-        <input id="buscador" type="search" placeholder="Busca audífonos, cargadores, fundas…" aria-label="Buscar productos">
+      <div class="portada-texto">
+        <span class="pildora">✨ Nuevo · Envío el mismo día</span>
+        <h1>Todo lo que tu iPhone necesita, <span class="grad">en stock hoy</span></h1>
+        <p>Elige tus accesorios favoritos, arma tu pedido y recíbelo sin complicaciones. Atención personal por WhatsApp.</p>
+        <div class="buscador">
+          <span class="buscador-icono" aria-hidden="true">🔍</span>
+          <input id="buscador" type="search" placeholder="Busca audífonos, cargadores, fundas…" aria-label="Buscar productos">
+        </div>
+        <div class="portada-datos">
+          <div><strong>+2,000</strong><span>clientes felices</span></div>
+          <div><strong>4.9★</strong><span>calificación</span></div>
+          <div><strong>24 h</strong><span>envíos express</span></div>
+        </div>
       </div>
-      <div id="categorias" class="chips" aria-label="Categorías"></div>
+      <div class="portada-visual">
+        <div class="portada-glow" aria-hidden="true"></div>
+        <img src="img/hero.jpg" alt="iPhone con accesorios: audífonos, reloj y cargador" class="portada-img">
+        <span class="etiqueta-flota a">⚡ Carga rápida</span>
+        <span class="etiqueta-flota b">🎧 Sonido premium</span>
+        <span class="etiqueta-flota c">✅ Garantía incluida</span>
+      </div>
     </section>
 
-    <section class="catalogo">
+    <section id="beneficios" class="beneficios" aria-label="Beneficios de comprar en J-Shop">
+      <div class="beneficio"><span class="beneficio-icono">🚚</span><div><strong>Envío express</strong><small>Entregas el mismo día</small></div></div>
+      <div class="beneficio"><span class="beneficio-icono">🛡️</span><div><strong>Garantía real</strong><small>Productos verificados</small></div></div>
+      <div class="beneficio"><span class="beneficio-icono">💳</span><div><strong>Pago seguro</strong><small>Efectivo o transferencia</small></div></div>
+      <div class="beneficio"><span class="beneficio-icono">💬</span><div><strong>Atención 1 a 1</strong><small>Te ayudamos por WhatsApp</small></div></div>
+    </section>
+
+    <div class="chips-zona">
+      <div id="categorias" class="chips" aria-label="Categorías"></div>
+    </div>
+
+    <section id="catalogo" class="catalogo">
+      <div class="catalogo-cabecera">
+        <div>
+          <h2>Nuestro catálogo</h2>
+          <p>Accesorios originales y de alta calidad para tu iPhone.</p>
+        </div>
+        <span class="catalogo-nota">Precios en pesos mexicanos</span>
+      </div>
       <div id="productos" class="rejilla"></div>
     </section>
   </main>
 
+  <footer class="pie">
+    <div class="pie-grid">
+      <div class="pie-marca">
+        <a class="marca" href="index.html"><span class="marca-icono">J</span><span class="marca-texto">J-Shop<small>Accesorios</small></span></a>
+        <p>Tu tienda de confianza para accesorios de iPhone. Calidad, garantía y atención personalizada.</p>
+      </div>
+      <div class="pie-col">
+        <h3>Tienda</h3>
+        <a href="#catalogo">Catálogo</a>
+        <a href="#beneficios">Beneficios</a>
+        <a href="admin.html">Administración</a>
+      </div>
+      <div class="pie-col">
+        <h3>Contacto</h3>
+        <a href="#" id="pieWhatsapp">WhatsApp</a>
+        <span>Atención de 9:00 a 20:00</span>
+        <span>Envíos a todo el país</span>
+      </div>
+    </div>
+    <div class="pie-base">© <span id="anio"></span> J-Shop · Hecho con cariño para tu iPhone</div>
+  </footer>
+
   <!-- Panel del pedido -->
   <div id="velo" class="velo"></div>
-  <aside id="panelCarrito" class="panel" aria-hidden="true">
+  <aside id="panelCarrito" class="panel" aria-hidden="true" aria-label="Mi pedido">
     <div class="panel-cabecera">
-      <h2>Mi pedido</h2>
+      <div>
+        <h2>Mi pedido</h2>
+        <span id="panelResumen" class="panel-resumen">0 productos</span>
+      </div>
       <button id="cerrarCarrito" class="btn-icono" aria-label="Cerrar">✕</button>
     </div>
     <div id="itemsCarrito" class="items"></div>
@@ -47,11 +115,14 @@
       <div class="total"><span>Total</span><strong id="totalCarrito">$0.00</strong></div>
       <label for="nombreCliente">Tu nombre</label>
       <input id="nombreCliente" type="text" placeholder="Ej. Ana López" autocomplete="name">
-      <button id="btnEnviar" class="btn-wa">Pedir por WhatsApp</button>
+      <button id="btnEnviar" class="btn-wa"><span aria-hidden="true">💬</span> Pedir por WhatsApp</button>
     </div>
   </aside>
 
-  <a id="btnWhatsapp" class="wa-flotante" target="_blank" rel="noopener">Contactar por WhatsApp</a>
+  <a id="btnWhatsapp" class="wa-flotante" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
+    <span class="wa-icono" aria-hidden="true">💬</span>
+    <span class="wa-texto">WhatsApp</span>
+  </a>
 
   <script src="js/data.js"></script>
   <script src="js/catalogo.js"></script>

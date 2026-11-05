@@ -1,10 +1,15 @@
-.login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
-.caja { background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio); padding: 32px; width: min(380px, 100%); display: grid; gap: 12px; }
-.caja h1 { font-size: 1.6rem; }
+.login {
+  min-height: 100vh; display: grid; place-items: center; padding: 16px;
+  background:
+    radial-gradient(800px 420px at 100% 0%, rgba(139, 92, 246, .16), transparent 60%),
+    radial-gradient(700px 420px at 0% 100%, rgba(91, 91, 245, .12), transparent 60%);
+}
+.caja { background: var(--superficie); border: 0; box-shadow: var(--sombra-hover); border-radius: var(--radio); padding: 34px; width: min(390px, 100%); display: grid; gap: 12px; }
+.caja h1 { font-size: 1.7rem; letter-spacing: -.02em; }
 label { font-size: .9rem; color: var(--tinta-suave); display: block; margin-bottom: 4px; }
 input, select { width: 100%; padding: 11px 13px; border: 1.5px solid var(--linea); border-radius: 10px; background: #fff; }
-.btn-principal { border: 0; background: var(--acento); color: #fff; padding: 12px 18px; border-radius: 10px; font-weight: 700; }
-.btn-principal:hover { background: var(--acento-oscuro); }
+.btn-principal { border: 0; background: var(--degradado); color: #fff; padding: 12px 18px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 22px rgba(91, 91, 245, .28); transition: transform .15s, box-shadow .15s; }
+.btn-principal:hover { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(91, 91, 245, .36); }
 .btn-secundario { border: 1.5px solid var(--linea); background: #fff; padding: 9px 14px; border-radius: 10px; font-weight: 500; }
 .btn-secundario:hover { border-color: var(--acento); }
 .error { color: var(--alerta); font-size: .9rem; }
@@ -58,3 +63,13 @@ td input[type=number] { width: 100px; padding: 7px 9px; }
 .stock-ctrl input { width: 70px !important; text-align: center; }
 .stock-bajo input { border-color: var(--alerta); color: var(--alerta); }
 .btn-borrar { border: 0; background: none; color: var(--alerta); }
+
+/* ===== Refinamientos ===== */
+.metrica { box-shadow: var(--sombra); border: 0; border-top: 4px solid var(--acento); }
+.metrica:nth-child(2) { border-top-color: #7c5cff; }
+.metrica:nth-child(3) { border-top-color: var(--wa); }
+.grafica, .pedido, .tabla-scroll, .form-producto, .caja { border: 0; box-shadow: var(--sombra); border-radius: var(--radio); }
+.barra-dia .col { background: linear-gradient(180deg, #7c5cff, var(--acento)); }
+tbody tr:hover { background: #fafbff; }
+.pestana.activa { color: var(--acento); }
+.btn-principal, .btn-vender { border-radius: 12px; }
