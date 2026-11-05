@@ -1,5 +1,6 @@
 /* ===== Panel de administración ===== */
 const login = $("#login"), panel = $("#panelAdmin");
+let productosAdmin = [];
 
 function mostrarPanel() {
   login.hidden = true; panel.hidden = false;
@@ -25,46 +26,40 @@ $$(".pestana").forEach(b => b.addEventListener("click", () => {
   renderTodo();
 }));
 
-function renderTodo() { renderVentas(); renderPedidos(); renderInventario(); }
+async function renderTodo() {
+  await Promise.all([renderVentas(), renderPedidos(), renderInventario()]);
+}
 
 /* ===== VENTAS: día, semana, mes ===== */
-const inicioDia = (d = new Date()) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-function inicioSemana(d = new Date()) {
-  const x = inicioDia(d);
-  x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); // semana desde el lunes
-  return x;
-}
-const inicioMes = (d = new Date()) => new Date(d.getFullYear(), d.getMonth(), 1);
+async function renderVentas() {
+  try {
+    const datos = await API.ventas();
+    const filas = [["Hoy", datos.hoy], ["Esta semana", datos.semana], ["Este mes", datos.mes]];
 
-function ventasDesde(fecha) {
-  const v = DB.pedidos().filter(p => p.estado === "completado" && new Date(p.fechaVenta) >= fecha);
-  return { total: v.reduce((s, p) => s + p.total, 0), pedidos: v.length, piezas: v.reduce((s, p) => s + p.items.reduce((a, i) => a + i.cantidad, 0), 0) };
-}
+    $("#metricas").innerHTML = filas.map(([titulo, r]) =>
+      `<div class="metrica"><span>${titulo}</span><strong>${dinero(r.total)}</strong><small>${r.pedidos} pedido(s) · ${r.piezas} pieza(s)</small></div>`
+    ).join("");
 
-function renderVentas() {
-  const datos = [["Hoy", inicioDia()], ["Esta semana", inicioSemana()], ["Este mes", inicioMes()]];
-  $("#metricas").innerHTML = datos.map(([t, f]) => {
-    const r = ventasDesde(f);
-    return `<div class="metrica"><span>${t}</span><strong>${dinero(r.total)}</strong><small>${r.pedidos} pedido(s) · ${r.piezas} pieza(s)</small></div>`;
-  }).join("");
-
-  const dias = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = inicioDia(); d.setDate(d.getDate() - i);
-    const fin = new Date(d); fin.setDate(fin.getDate() + 1);
-    const total = DB.pedidos().filter(p => p.estado === "completado" && new Date(p.fechaVenta) >= d && new Date(p.fechaVenta) < fin)
-      .reduce((s, p) => s + p.total, 0);
-    dias.push({ etiqueta: d.toLocaleDateString("es-MX", { weekday: "short", day: "numeric" }), total });
+    const max = Math.max(...datos.dias.map(d => d.total), 1);
+    $("#grafica").innerHTML = datos.dias.map(d =>
+      `<div class="barra-dia"><b>${d.total ? dinero(d.total) : ""}</b><div class="col" style="height:${(d.total / max) * 100}%"></div><span>${esc(d.etiqueta)}</span></div>`
+    ).join("");
+  } catch (e) {
+    avisar(e.message);
   }
-  const max = Math.max(...dias.map(d => d.total), 1);
-  $("#grafica").innerHTML = dias.map(d =>
-    `<div class="barra-dia"><b>${d.total ? dinero(d.total) : ""}</b><div class="col" style="height:${(d.total / max) * 100}%"></div><span>${esc(d.etiqueta)}</span></div>`
-  ).join("");
 }
 
 /* ===== PEDIDOS ===== */
-function renderPedidos() {
-  const todos = DB.pedidos();
+async function renderPedidos() {
+  let todos;
+  try {
+    todos = await API.pedidos();
+  } catch (e) {
+    avisar(e.message);
+    $("#listaPedidos").innerHTML = `<p class="nota">No se pudieron cargar los pedidos.</p>`;
+    return;
+  }
+
   const pend = todos.filter(p => p.estado === "pendiente").length;
   $("#badgePedidos").textContent = pend || "";
   $("#badgePedidos").hidden = !pend;
@@ -77,7 +72,7 @@ function renderPedidos() {
   $("#listaPedidos").innerHTML = lista.map(p => `
     <article class="pedido">
       <div class="pedido-cab">
-        <div><strong>${esc(p.cliente)}</strong> <span class="nota">· ${esc(p.id)} · ${new Date(p.fecha).toLocaleString("es-MX")}</span></div>
+        <div><strong>${esc(p.cliente)}</strong> <span class="nota">· ${esc(p.folio)} · ${new Date(p.fecha.replace(" ", "T")).toLocaleString("es-MX")}</span></div>
         <span class="etiqueta ${p.estado}">${nombres[p.estado]}</span>
       </div>
       <ul>${p.items.map(i => `<li>${i.cantidad} × ${esc(i.nombre)} (${dinero(i.precio)})</li>`).join("")}</ul>
@@ -88,32 +83,39 @@ function renderPedidos() {
     </article>`).join("");
 }
 
-function marcarVendido(id) {
-  const pedidos = DB.pedidos(), productos = DB.productos();
-  const pedido = pedidos.find(p => p.id === id);
-  const faltante = pedido.items.find(i => (productos.find(p => p.id === i.id)?.stock ?? 0) < i.cantidad);
-  if (faltante) { avisar(`Stock insuficiente de: ${faltante.nombre}`); return; }
-  pedido.items.forEach(i => { productos.find(p => p.id === i.id).stock -= i.cantidad; });
-  pedido.estado = "completado";
-  pedido.fechaVenta = new Date().toISOString();
-  DB.guardarProductos(productos); DB.guardarPedidos(pedidos);
-  avisar("Venta registrada y stock actualizado");
-  renderTodo();
+async function marcarVendido(id) {
+  try {
+    await API.accionPedido(id, "vender");
+    avisar("Venta registrada y stock actualizado");
+    renderTodo();
+  } catch (e) {
+    avisar(e.message);
+  }
 }
 
-function cancelarPedido(id) {
+async function cancelarPedido(id) {
   if (!confirm("¿Cancelar este pedido?")) return;
-  const pedidos = DB.pedidos();
-  pedidos.find(p => p.id === id).estado = "cancelado";
-  DB.guardarPedidos(pedidos); renderTodo();
+  try {
+    await API.accionPedido(id, "cancelar");
+    renderTodo();
+  } catch (e) {
+    avisar(e.message);
+  }
 }
 $("#filtroEstado").addEventListener("change", renderPedidos);
 
 /* ===== INVENTARIO ===== */
 $("#pCategoria").innerHTML = CATEGORIAS.map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join("");
 
-function renderInventario() {
-  $("#tablaProductos").innerHTML = DB.productos().map(p => `
+async function renderInventario() {
+  try {
+    productosAdmin = await API.productos();
+  } catch (e) {
+    avisar(e.message);
+    return;
+  }
+
+  $("#tablaProductos").innerHTML = productosAdmin.map(p => `
     <tr>
       <td>${esc(p.nombre)}</td>
       <td>${esc(categoriaDe(p.categoria).nombre)}</td>
@@ -127,10 +129,13 @@ function renderInventario() {
     </tr>`).join("");
 }
 
-function actualizarProducto(id, campos) {
-  const productos = DB.productos();
-  Object.assign(productos.find(p => p.id === id), campos);
-  DB.guardarProductos(productos);
+async function actualizarProducto(id, campos) {
+  try {
+    await API.actualizarProducto(id, campos);
+    await renderInventario();
+  } catch (e) {
+    avisar(e.message);
+  }
 }
 
 function leerImagen(archivo) {
@@ -154,39 +159,64 @@ function leerImagen(archivo) {
 
 $("#formProducto").addEventListener("submit", async e => {
   e.preventDefault();
-  const productos = DB.productos();
-  productos.unshift({
-    id: nuevoId("p"),
-    nombre: $("#pNombre").value.trim(),
-    categoria: $("#pCategoria").value,
-    precio: parseFloat($("#pPrecio").value),
-    stock: parseInt($("#pStock").value, 10),
-    imagen: await leerImagen($("#pImagen").files[0])
-  });
-  DB.guardarProductos(productos);
-  e.target.reset();
-  avisar("Producto agregado al catálogo");
-  renderInventario();
+  const imagen = await leerImagen($("#pImagen").files[0]);
+
+  try {
+    await API.crearProducto({
+      nombre: $("#pNombre").value.trim(),
+      categoria: $("#pCategoria").value,
+      precio: parseFloat($("#pPrecio").value),
+      stock: parseInt($("#pStock").value, 10),
+      imagen
+    });
+    e.target.reset();
+    avisar("Producto agregado al catálogo");
+    renderInventario();
+  } catch (err) {
+    avisar(err.message);
+  }
 });
 
 /* ----- Eventos delegados ----- */
-document.addEventListener("click", e => {
+document.addEventListener("click", async e => {
   const d = e.target.dataset;
-  if (d.vender) marcarVendido(d.vender);
-  if (d.cancelar) cancelarPedido(d.cancelar);
+
+  if (d.vender) { marcarVendido(Number(d.vender)); return; }
+  if (d.cancelar) { cancelarPedido(Number(d.cancelar)); return; }
+
   if (d.stockMas || d.stockMenos) {
-    const id = d.stockMas || d.stockMenos;
-    const p = DB.productos().find(x => x.id === id);
-    actualizarProducto(id, { stock: Math.max(0, p.stock + (d.stockMas ? 1 : -1)) });
-    renderInventario();
+    const id = Number(d.stockMas || d.stockMenos);
+    const p = productosAdmin.find(x => Number(x.id) === id);
+    if (!p) return;
+    const stock = Math.max(0, Number(p.stock) + (d.stockMas ? 1 : -1));
+    await actualizarProducto(id, { stock });
+    return;
   }
+
   if (d.borrar && confirm("¿Eliminar este producto del catálogo?")) {
-    DB.guardarProductos(DB.productos().filter(p => p.id !== d.borrar));
-    renderInventario();
+    try {
+      await API.eliminarProducto(Number(d.borrar));
+      avisar("Producto eliminado del catálogo");
+      renderInventario();
+    } catch (err) {
+      avisar(err.message);
+    }
   }
 });
-document.addEventListener("change", e => {
+
+document.addEventListener("change", async e => {
   const d = e.target.dataset;
-  if (d.stock) { actualizarProducto(d.stock, { stock: Math.max(0, parseInt(e.target.value, 10) || 0) }); renderInventario(); }
-  if (d.precio) { actualizarProducto(d.precio, { precio: Math.max(0, parseFloat(e.target.value) || 0) }); avisar("Precio actualizado"); }
+
+  if (d.stock) {
+    await actualizarProducto(Number(d.stock), { stock: Math.max(0, parseInt(e.target.value, 10) || 0) });
+  }
+
+  if (d.precio) {
+    try {
+      await API.actualizarProducto(Number(d.precio), { precio: Math.max(0, parseFloat(e.target.value) || 0) });
+      avisar("Precio actualizado");
+    } catch (err) {
+      avisar(err.message);
+    }
+  }
 });

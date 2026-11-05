@@ -1,5 +1,8 @@
 /* ===== Vista del cliente ===== */
-let carrito = DB.leer("carrito", []); // [{ id, cantidad }]
+let productos = [];
+let carrito = DB.leer("carrito", [])
+  .map(i => ({ id: Number(i.id), cantidad: Number(i.cantidad) || 0 }))
+  .filter(i => Number.isFinite(i.id) && i.id > 0 && i.cantidad > 0);
 let categoriaActiva = "todos";
 let texto = "";
 
@@ -14,7 +17,7 @@ function renderCategorias() {
 
 function renderProductos() {
   const q = texto.toLowerCase();
-  const lista = DB.productos().filter(p =>
+  const lista = productos.filter(p =>
     p.stock > 0 &&
     (categoriaActiva === "todos" || p.categoria === categoriaActiva) &&
     p.nombre.toLowerCase().includes(q)
@@ -45,9 +48,8 @@ function renderProductos() {
 
 /* ----- Carrito ----- */
 function itemsDetallados() {
-  const productos = DB.productos();
   return carrito.map(i => {
-    const p = productos.find(x => x.id === i.id);
+    const p = productos.find(x => Number(x.id) === Number(i.id));
     return p ? { ...p, cantidad: Math.min(i.cantidad, p.stock) } : null;
   }).filter(Boolean);
 }
@@ -84,8 +86,10 @@ function renderCarrito() {
 }
 
 function cambiarCantidad(id, delta) {
-  const p = DB.productos().find(x => x.id === id);
-  let item = carrito.find(i => i.id === id);
+  id = Number(id);
+  const p = productos.find(x => Number(x.id) === id);
+  if (!p) return;
+  let item = carrito.find(i => Number(i.id) === id);
   if (!item) { item = { id, cantidad: 0 }; carrito.push(item); }
   const nueva = item.cantidad + delta;
   if (nueva > p.stock) { avisar("No hay más piezas en stock de este producto"); return; }
@@ -100,32 +104,32 @@ function abrirCarrito(abrir) {
   $("#panelCarrito").setAttribute("aria-hidden", String(!abrir));
 }
 
-/* ----- Enviar pedido por WhatsApp ----- */
-function pedirPorWhatsApp() {
+/* ----- Enviar pedido ----- */
+async function pedirPorWhatsApp() {
   const nombre = $("#nombreCliente").value.trim();
   const items = itemsDetallados();
   if (!items.length) return;
   if (!nombre) { avisar("Escribe tu nombre para enviar el pedido"); $("#nombreCliente").focus(); return; }
 
-  const total = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
-  const pedido = {
-    id: nuevoId("P"),
-    fecha: new Date().toISOString(),
-    cliente: nombre,
-    items: items.map(i => ({ id: i.id, nombre: i.nombre, precio: i.precio, cantidad: i.cantidad })),
-    total,
-    estado: "pendiente"
-  };
-  const pedidos = DB.pedidos();
-  pedidos.unshift(pedido);
-  DB.guardarPedidos(pedidos);
+  $("#btnEnviar").disabled = true;
 
-  const lineas = items.map(i => `• ${i.cantidad} x ${i.nombre} - ${dinero(i.precio * i.cantidad)}`);
-  const mensaje = `Hola, soy ${nombre}. Quiero hacer este pedido (${pedido.id}):\n${lineas.join("\n")}\nTotal: ${dinero(total)}`;
-  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(mensaje)}`, "_blank");
+  try {
+    const pedido = await API.crearPedido({
+      cliente: nombre,
+      items: items.map(i => ({ id: Number(i.id), cantidad: i.cantidad }))
+    });
 
-  carrito = []; guardarCarrito(); renderCarrito(); abrirCarrito(false);
-  avisar("Pedido enviado. Continúa la conversación en WhatsApp");
+    const lineas = items.map(i => `• ${i.cantidad} x ${i.nombre} - ${dinero(i.precio * i.cantidad)}`);
+    const mensaje = `Hola, soy ${nombre}. Quiero hacer este pedido (${pedido.folio}):\n${lineas.join("\n")}\nTotal: ${dinero(pedido.total)}`;
+    window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(mensaje)}`, "_blank");
+
+    carrito = []; guardarCarrito(); renderCarrito(); abrirCarrito(false);
+    avisar("Pedido recibido. Continúa la conversación en WhatsApp");
+  } catch (e) {
+    avisar(e.message);
+  } finally {
+    renderCarrito();
+  }
 }
 
 /* ----- Eventos ----- */
@@ -136,7 +140,7 @@ document.addEventListener("click", e => {
   if (t.dataset.agregar) { cambiarCantidad(t.dataset.agregar, 1); avisar("Agregado a tu pedido"); }
   if (t.dataset.mas) cambiarCantidad(t.dataset.mas, 1);
   if (t.dataset.menos) cambiarCantidad(t.dataset.menos, -1);
-  if (t.dataset.quitar) { carrito = carrito.filter(i => i.id !== t.dataset.quitar); guardarCarrito(); renderCarrito(); }
+  if (t.dataset.quitar) { carrito = carrito.filter(i => Number(i.id) !== Number(t.dataset.quitar)); guardarCarrito(); renderCarrito(); }
 });
 $("#buscador").addEventListener("input", e => { texto = e.target.value; renderProductos(); });
 $("#btnCarrito").addEventListener("click", () => abrirCarrito(true));
@@ -150,4 +154,21 @@ if (pieWa) pieWa.href = enlaceWa;
 const anio = $("#anio");
 if (anio) anio.textContent = new Date().getFullYear();
 
-renderCategorias(); renderProductos(); renderCarrito();
+/* ----- Arranque ----- */
+async function iniciarCatalogo() {
+  renderCategorias();
+  renderCarrito();
+
+  try {
+    productos = await API.productos();
+  } catch (e) {
+    $("#productos").innerHTML = `<p class="vacio">${esc(e.message)}</p>`;
+    $("#btnEnviar").disabled = true;
+    return;
+  }
+
+  renderProductos();
+  renderCarrito();
+}
+
+iniciarCatalogo();

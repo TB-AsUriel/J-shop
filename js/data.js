@@ -17,16 +17,7 @@ const CATEGORIAS = [
   { id: "otros", nombre: "Otros", icono: "🧩" }
 ];
 
-const PRODUCTOS_INICIALES = [
-  { id: "p1", nombre: "EarPods con conector Lightning", categoria: "audifonos-cable", precio: 450, stock: 12, imagen: "img/earpods.jpg" },
-  { id: "p2", nombre: "Audífonos Bluetooth con estuche de carga", categoria: "audifonos-inalambricos", precio: 899, stock: 8, imagen: "img/audifonos-bt.jpg" },
-  { id: "p3", nombre: "Cable USB-C a Lightning 1 m", categoria: "cables", precio: 249, stock: 25, imagen: "img/cable.jpg" },
-  { id: "p4", nombre: "Cargador de pared 20 W USB-C", categoria: "cargadores", precio: 329, stock: 15, imagen: "img/cargador.jpg" },
-  { id: "p5", nombre: "Funda de silicón transparente", categoria: "fundas", precio: 199, stock: 3, imagen: "img/funda.jpg" },
-  { id: "p6", nombre: "Reloj inteligente con llamadas", categoria: "relojes", precio: 1290, stock: 5, imagen: "img/reloj.jpg" }
-];
-
-/* ===== Capa de datos (localStorage) ===== */
+/* ===== Almacenamiento local del carrito ===== */
 const DB = {
   leer(clave, defecto) {
     try {
@@ -34,26 +25,7 @@ const DB = {
       return v ? JSON.parse(v) : defecto;
     } catch (e) { return defecto; }
   },
-  guardar(clave, valor) { localStorage.setItem(clave, JSON.stringify(valor)); },
-  productos() {
-    let lista = this.leer("productos", null);
-    if (!lista) {
-      lista = PRODUCTOS_INICIALES.map(p => ({ ...p }));
-      this.guardar("productos", lista);
-      return lista;
-    }
-    // Migración: rellena fotos faltantes de los productos base
-    const base = Object.fromEntries(PRODUCTOS_INICIALES.map(p => [p.id, p]));
-    let cambio = false;
-    lista.forEach(p => {
-      if (!p.imagen && base[p.id]?.imagen) { p.imagen = base[p.id].imagen; cambio = true; }
-    });
-    if (cambio) this.guardar("productos", lista);
-    return lista;
-  },
-  guardarProductos(l) { this.guardar("productos", l); },
-  pedidos() { return this.leer("pedidos", []); },
-  guardarPedidos(l) { this.guardar("pedidos", l); }
+  guardar(clave, valor) { localStorage.setItem(clave, JSON.stringify(valor)); }
 };
 
 /* ===== Utilidades ===== */
@@ -62,7 +34,6 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const dinero = n => CONFIG.moneda + Number(n).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const categoriaDe = id => CATEGORIAS.find(c => c.id === id) || CATEGORIAS[CATEGORIAS.length - 1];
-const nuevoId = p => p + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 99);
 
 function avisar(texto) {
   let t = $("#aviso");
@@ -70,5 +41,5 @@ function avisar(texto) {
   t.textContent = texto;
   t.classList.add("visible");
   clearTimeout(avisar._t);
-  avisar._t = setTimeout(() => t.classList.remove("visible"), 2600);
+  avisar._t = setTimeout(() => t.classList.remove("visible"), 3200);
 }
