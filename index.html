@@ -13,15 +13,14 @@
 <body>
   <header class="barra">
     <a class="marca" href="index.html" aria-label="J-Shop inicio">
-      <span class="marca-icono">J</span>
-      <span class="marca-texto">J-Shop<small>Accesorios</small></span>
+      <img class="marca-logo" src="img/logo.png" alt="J-Shop">
     </a>
     <nav class="barra-nav" aria-label="Navegación principal">
       <a href="#catalogo">Catálogo</a>
       <a href="#beneficios">Beneficios</a>
     </nav>
     <div class="barra-acciones">
-      <a class="enlace-admin" href="admin.html">Administrar tienda</a>
+      <a class="enlace-admin" href="login.html">Administrar tienda</a>
       <button id="btnCarrito" class="btn-carrito" aria-label="Abrir pedido">
         <span class="carrito-icono" aria-hidden="true">🛍️</span>
         <span class="carrito-texto">Mi pedido</span>
@@ -81,14 +80,14 @@
   <footer class="pie">
     <div class="pie-grid">
       <div class="pie-marca">
-        <a class="marca" href="index.html"><span class="marca-icono">J</span><span class="marca-texto">J-Shop<small>Accesorios</small></span></a>
+        <a class="marca" href="index.html"><img class="marca-logo" src="img/logo.png" alt="J-Shop"></a>
         <p>Tu tienda de confianza para accesorios de iPhone. Calidad, garantía y atención personalizada.</p>
       </div>
       <div class="pie-col">
         <h3>Tienda</h3>
         <a href="#catalogo">Catálogo</a>
         <a href="#beneficios">Beneficios</a>
-        <a href="admin.html">Administración</a>
+        <a href="login.html">Administración</a>
       </div>
       <div class="pie-col">
         <h3>Contacto</h3>
@@ -115,6 +114,22 @@
       <div class="total"><span>Total</span><strong id="totalCarrito">$0.00</strong></div>
       <label for="nombreCliente">Tu nombre</label>
       <input id="nombreCliente" type="text" placeholder="Ej. Ana López" autocomplete="name">
+      <div class="entrega-campos">
+        <div>
+          <label for="fechaEntrega">Día de entrega</label>
+          <input id="fechaEntrega" type="date">
+        </div>
+        <div>
+          <label for="horaEntrega">Hora de entrega</label>
+          <input id="horaEntrega" type="time" step="300">
+        </div>
+        <div class="entrega-completo">
+          <label for="lugarEntrega">Lugar de entrega</label>
+          <select id="lugarEntrega">
+            <option value="">Selecciona un lugar</option>
+          </select>
+        </div>
+      </div>
       <button id="btnEnviar" class="btn-wa"><span aria-hidden="true">💬</span> Pedir por WhatsApp</button>
     </div>
   </aside>

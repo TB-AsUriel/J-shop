@@ -63,9 +63,32 @@ for ($i = 6; $i >= 0; $i--) {
     ];
 }
 
+$entregas = [];
+$etiquetasEntrega = [0 => 'Hoy', 1 => 'Mañana'];
+
+foreach ([0, 1] as $offset) {
+    $dia = $hoyDate->modify("+$offset day")->format('Y-m-d');
+
+    $stmt = $db->prepare(
+        "SELECT COUNT(*) AS pedidos, COALESCE(SUM(total), 0) AS total
+         FROM pedidos
+         WHERE fecha_entrega = ? AND estado <> 'cancelado'"
+    );
+    $stmt->execute([$dia]);
+    $fila = $stmt->fetch();
+
+    $entregas[] = [
+        'etiqueta' => $etiquetasEntrega[$offset],
+        'fecha' => $dia,
+        'pedidos' => (int) $fila['pedidos'],
+        'total' => (float) $fila['total'],
+    ];
+}
+
 ok([
     'hoy' => resumen_ventas($db, $desdeHoy),
     'semana' => resumen_ventas($db, $desdeSemana),
     'mes' => resumen_ventas($db, $desdeMes),
     'dias' => $dias,
+    'entregas' => $entregas,
 ]);

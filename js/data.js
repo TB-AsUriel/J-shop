@@ -3,9 +3,20 @@ const CONFIG = {
   tienda: "J-Shop",
   // Número con lada de país y sin "+" ni espacios. Ej. México: 52 + 10 dígitos
   whatsapp: "522224809352",
+  // Número del proveedor (con lada de país, sin "+" ni espacios)
+  whatsappProveedor: "52229047404",
   moneda: "$",
   adminPassword: "admin123" // CÁMBIALA. Solo es protección de demostración
 };
+
+const LUGARES = [
+  "Parque Puebla",
+  "CU BUAP",
+  "ITP",
+  "Plaza Cristal",
+  "Plaza Dorada",
+  "Angelopolis"
+];
 
 const CATEGORIAS = [
   { id: "audifonos-cable", nombre: "Audífonos con cable", icono: "🎧" },

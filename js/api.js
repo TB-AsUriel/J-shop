@@ -75,5 +75,9 @@ const API = {
 
   ventas() {
     return this.pedir("ventas.php");
+  },
+
+  reporteVentas(desde, hasta) {
+    return this.pedir("reporte_ventas.php", { query: { desde, hasta } });
   }
 };

@@ -13,6 +13,9 @@ function normalizar_pedido(array $pedido, array $items): array
         'estado' => $pedido['estado'],
         'total' => (float) $pedido['total'],
         'fechaVenta' => $pedido['fecha_venta'],
+        'fechaEntrega' => $pedido['fecha_entrega'],
+        'horaEntrega' => $pedido['hora_entrega'] !== null ? substr($pedido['hora_entrega'], 0, 5) : null,
+        'lugar' => $pedido['lugar'],
         'items' => $items,
     ];
 }
@@ -25,7 +28,7 @@ function cargar_items(PDO $db, array $idsPedidos): array
 
     $marcas = implode(',', array_fill(0, count($idsPedidos), '?'));
     $stmt = $db->prepare(
-        "SELECT pedido_id, producto_id, nombre_producto, precio_unitario, cantidad
+        "SELECT pedido_id, producto_id, nombre_producto, modelo, precio_unitario, cantidad
          FROM pedido_detalle
          WHERE pedido_id IN ($marcas)
          ORDER BY id"
@@ -37,6 +40,7 @@ function cargar_items(PDO $db, array $idsPedidos): array
         $items[(int) $fila['pedido_id']][] = [
             'id' => $fila['producto_id'] !== null ? (int) $fila['producto_id'] : null,
             'nombre' => $fila['nombre_producto'],
+            'modelo' => $fila['modelo'],
             'precio' => (float) $fila['precio_unitario'],
             'cantidad' => (int) $fila['cantidad'],
         ];
@@ -57,7 +61,7 @@ switch ($metodo) {
             fail('Estado no válido');
         }
 
-        $sql = 'SELECT id, folio, cliente, fecha, estado, total, fecha_venta FROM pedidos';
+        $sql = 'SELECT id, folio, cliente, fecha, estado, total, fecha_venta, fecha_entrega, hora_entrega, lugar FROM pedidos';
         $params = [];
 
         if ($estado !== null) {
@@ -86,6 +90,9 @@ switch ($metodo) {
 
         $cliente = trim((string) $data['cliente']);
         $items = $data['items'];
+        $lugar = isset($data['lugar']) ? trim((string) $data['lugar']) : '';
+        $fechaEntrega = isset($data['fechaEntrega']) ? trim((string) $data['fechaEntrega']) : '';
+        $horaEntrega = isset($data['horaEntrega']) ? trim((string) $data['horaEntrega']) : '';
 
         if ($cliente === '') {
             fail('Escribe el nombre del cliente');
@@ -94,13 +101,56 @@ switch ($metodo) {
             fail('El pedido no tiene productos');
         }
 
+        $lugaresPermitidos = [
+            'Parque Puebla',
+            'CU BUAP',
+            'ITP',
+            'Plaza Cristal',
+            'Plaza Dorada',
+            'Angelopolis',
+        ];
+        if ($lugar !== '' && !in_array($lugar, $lugaresPermitidos, true)) {
+            fail('Lugar de entrega no válido');
+        }
+
+        if ($fechaEntrega !== '') {
+            $fecha = DateTimeImmutable::createFromFormat('Y-m-d', $fechaEntrega);
+            if (!$fecha || $fecha->format('Y-m-d') !== $fechaEntrega) {
+                fail('Fecha de entrega no válida');
+            }
+        } else {
+            $fechaEntrega = null;
+        }
+
+        if ($horaEntrega !== '') {
+            if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/', $horaEntrega)) {
+                fail('Hora de entrega no válida');
+            }
+            if ($fechaEntrega === null) {
+                fail('Selecciona el día de entrega para indicar la hora');
+            }
+            if (strlen($horaEntrega) === 5) {
+                $horaEntrega .= ':00';
+            }
+        } else {
+            $horaEntrega = null;
+        }
+
+        if ($lugar === '') {
+            $lugar = null;
+        }
+
         $db->beginTransaction();
 
         try {
             $lineas = [];
             $total = 0.0;
+            $acumulado = [];
             $stmtProducto = $db->prepare(
                 'SELECT id, nombre, precio, stock, activo FROM productos WHERE id = ? FOR UPDATE'
+            );
+            $stmtVariantes = $db->prepare(
+                'SELECT modelo, precio FROM producto_variantes WHERE producto_id = ? ORDER BY id'
             );
 
             foreach ($items as $item) {
@@ -117,17 +167,48 @@ switch ($metodo) {
                 if (!$producto || (int) $producto['activo'] !== 1) {
                     throw new RuntimeException('Un producto del pedido ya no está disponible');
                 }
-                if ($cantidad > (int) $producto['stock']) {
+
+                $acumulado[$productoId] = ($acumulado[$productoId] ?? 0) + $cantidad;
+                if ($acumulado[$productoId] > (int) $producto['stock']) {
                     throw new RuntimeException('Stock insuficiente de: ' . $producto['nombre']);
                 }
 
+                $stmtVariantes->execute([$productoId]);
+                $variantes = $stmtVariantes->fetchAll();
+
+                $modelo = null;
+                $nombre = $producto['nombre'];
                 $precio = (float) $producto['precio'];
+
+                if ($variantes) {
+                    $modelo = trim((string) ($item['modelo'] ?? ''));
+
+                    if ($modelo === '') {
+                        throw new RuntimeException('Selecciona el modelo de: ' . $producto['nombre']);
+                    }
+
+                    $precio = null;
+                    foreach ($variantes as $variante) {
+                        if ($variante['modelo'] === $modelo) {
+                            $precio = (float) $variante['precio'];
+                            break;
+                        }
+                    }
+
+                    if ($precio === null) {
+                        throw new RuntimeException('Modelo no válido para: ' . $producto['nombre']);
+                    }
+
+                    $nombre = $producto['nombre'] . ' (' . $modelo . ')';
+                }
+
                 $subtotal = round($precio * $cantidad, 2);
                 $total += $subtotal;
 
                 $lineas[] = [
                     'id' => $productoId,
-                    'nombre' => $producto['nombre'],
+                    'nombre' => $nombre,
+                    'modelo' => $modelo,
                     'precio' => $precio,
                     'cantidad' => $cantidad,
                     'subtotal' => $subtotal,
@@ -137,15 +218,15 @@ switch ($metodo) {
             $folio = 'P' . date('YmdHis') . strtoupper(substr(bin2hex(random_bytes(2)), 0, 3));
 
             $stmtPedido = $db->prepare(
-                'INSERT INTO pedidos (folio, cliente, estado, total) VALUES (?, ?, ?, ?)'
+                'INSERT INTO pedidos (folio, cliente, estado, total, fecha_entrega, hora_entrega, lugar) VALUES (?, ?, ?, ?, ?, ?, ?)'
             );
-            $stmtPedido->execute([$folio, $cliente, 'pendiente', round($total, 2)]);
+            $stmtPedido->execute([$folio, $cliente, 'pendiente', round($total, 2), $fechaEntrega, $horaEntrega, $lugar]);
             $pedidoId = (int) $db->lastInsertId();
 
             $stmtDetalle = $db->prepare(
                 'INSERT INTO pedido_detalle
-                    (pedido_id, producto_id, nombre_producto, precio_unitario, cantidad, subtotal)
-                 VALUES (?, ?, ?, ?, ?, ?)'
+                    (pedido_id, producto_id, nombre_producto, modelo, precio_unitario, cantidad, subtotal)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)'
             );
 
             foreach ($lineas as $linea) {
@@ -153,6 +234,7 @@ switch ($metodo) {
                     $pedidoId,
                     $linea['id'],
                     $linea['nombre'],
+                    $linea['modelo'],
                     $linea['precio'],
                     $linea['cantidad'],
                     $linea['subtotal'],
@@ -179,10 +261,14 @@ switch ($metodo) {
             'estado' => 'pendiente',
             'total' => round($total, 2),
             'fechaVenta' => null,
+            'fechaEntrega' => $fechaEntrega,
+            'horaEntrega' => $horaEntrega !== null ? substr($horaEntrega, 0, 5) : null,
+            'lugar' => $lugar,
             'items' => array_map(static function (array $l): array {
                 return [
                     'id' => $l['id'],
                     'nombre' => $l['nombre'],
+                    'modelo' => $l['modelo'],
                     'precio' => $l['precio'],
                     'cantidad' => $l['cantidad'],
                 ];
@@ -261,7 +347,7 @@ switch ($metodo) {
                     ]);
                 }
 
-                $fechaVenta = date('Y-m-d H:i:s');
+                $fechaVenta = $db->query('SELECT NOW()')->fetchColumn();
 
                 $db->prepare('UPDATE pedidos SET estado = ?, fecha_venta = ? WHERE id = ?')
                     ->execute(['completado', $fechaVenta, $id]);
@@ -287,8 +373,8 @@ switch ($metodo) {
             if ($estado === false) {
                 fail('El pedido no existe', 404);
             }
-            if ($estado !== 'pendiente') {
-                fail('Solo se pueden cancelar pedidos pendientes');
+            if ($estado === 'cancelado') {
+                fail('El pedido ya está cancelado');
             }
 
             $db->prepare('UPDATE pedidos SET estado = ? WHERE id = ?')

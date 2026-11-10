@@ -11,22 +11,9 @@
   <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
-  <!-- Acceso -->
-  <section id="login" class="login">
-    <form id="formLogin" class="caja">
-      <h1>Administrar tienda</h1>
-      <label for="clave">Contraseña</label>
-      <input id="clave" type="password" autocomplete="current-password" required>
-      <button class="btn-principal" type="submit">Entrar</button>
-      <p id="errorLogin" class="error" hidden>Contraseña incorrecta. Inténtalo de nuevo.</p>
-      <a href="index.html" class="volver">Volver al catálogo</a>
-    </form>
-  </section>
-
-  <!-- Panel -->
   <div id="panelAdmin" hidden>
     <header class="barra">
-      <a class="marca" href="admin.html"><span class="marca-icono">J</span><span class="marca-texto">J-Shop<small>Administración</small></span></a>
+      <a class="marca" href="admin.html"><img class="marca-logo" src="img/logo.png" alt="J-Shop administración"></a>
       <div class="barra-acciones">
         <a class="enlace-admin" href="index.html">Ver catálogo</a>
         <button id="btnSalir" class="btn-secundario">Cerrar sesión</button>
@@ -34,22 +21,48 @@
     </header>
 
     <nav class="pestanas" role="tablist">
-      <button class="pestana activa" data-tab="ventas" role="tab">Ventas</button>
-      <button class="pestana" data-tab="pedidos" role="tab">Pedidos <span id="badgePedidos" class="contador"></span></button>
-      <button class="pestana" data-tab="inventario" role="tab">Inventario</button>
+      <button class="pestana activa" data-tab="ventas" role="tab"><span aria-hidden="true">📊</span> Ventas</button>
+      <button class="pestana" data-tab="pedidos" role="tab"><span aria-hidden="true">🧾</span> Pedidos <span id="badgePedidos" class="contador"></span></button>
+      <button class="pestana" data-tab="inventario" role="tab"><span aria-hidden="true">📦</span> Inventario</button>
+      <button class="pestana" data-tab="proveedores" role="tab"><span aria-hidden="true">🚚</span> Proveedores</button>
     </nav>
 
     <main class="contenido">
       <!-- VENTAS -->
       <section id="tab-ventas" class="tab">
+        <h1 class="titulo-pagina">Ventas</h1>
         <div class="metricas" id="metricas"></div>
+
         <h2>Ventas de los últimos 7 días</h2>
         <div id="grafica" class="grafica"></div>
         <p class="nota">Solo cuentan los pedidos marcados como vendidos.</p>
+
+        <h2>Entregas de hoy y mañana</h2>
+        <div id="graficaEntregas" class="grafica grafica-entregas"></div>
+        <p class="nota">Pedidos no cancelados con fecha de entrega para hoy o mañana.</p>
+
+        <h2>Ventas por producto</h2>
+        <div class="filtro-periodo">
+          <div><label for="reporteDesde">Desde</label><input id="reporteDesde" type="date"></div>
+          <div><label for="reporteHasta">Hasta</label><input id="reporteHasta" type="date"></div>
+          <div class="periodo-acciones">
+            <button type="button" class="btn-secundario" data-periodo="hoy">Hoy</button>
+            <button type="button" class="btn-secundario" data-periodo="semana">7 días</button>
+            <button type="button" class="btn-secundario" data-periodo="mes">Este mes</button>
+          </div>
+        </div>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Producto</th><th>Piezas vendidas</th><th>Total vendido</th></tr></thead>
+            <tbody id="tablaReporteProductos"></tbody>
+          </table>
+        </div>
+        <p id="resumenReporte" class="nota"></p>
       </section>
 
       <!-- PEDIDOS -->
       <section id="tab-pedidos" class="tab" hidden>
+        <h1 class="titulo-pagina">Pedidos</h1>
         <div class="fila-titulo">
           <h2>Pedidos</h2>
           <select id="filtroEstado" aria-label="Filtrar por estado">
@@ -64,6 +77,7 @@
 
       <!-- INVENTARIO -->
       <section id="tab-inventario" class="tab" hidden>
+        <h1 class="titulo-pagina">Inventario</h1>
         <h2>Agregar producto</h2>
         <form id="formProducto" class="form-producto">
           <div><label for="pNombre">Nombre</label><input id="pNombre" required></div>
@@ -81,6 +95,21 @@
             <tbody id="tablaProductos"></tbody>
           </table>
         </div>
+      </section>
+
+      <!-- PROVEEDORES -->
+      <section id="tab-proveedores" class="tab" hidden>
+        <h1 class="titulo-pagina">Proveedores</h1>
+        <h2>Inventario para reponer</h2>
+        <p class="nota">Selecciona los artículos que quieres reponer y genera un mensaje automático para tu proveedor.</p>
+
+        <div class="proveedor-controles">
+          <label class="check-todos"><input type="checkbox" id="seleccionarTodos"> Seleccionar todos</label>
+          <button type="button" id="btnMensajeProveedor" class="btn-principal">Generar mensaje por WhatsApp</button>
+        </div>
+
+        <div id="listaProveedores" class="lista-proveedores"></div>
+        <p id="sinProveedores" class="nota" hidden>No hay productos en el inventario.</p>
       </section>
     </main>
   </div>

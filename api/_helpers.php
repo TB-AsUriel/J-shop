@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+date_default_timezone_set('America/Mexico_City');
+
 require_once __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json; charset=utf-8');

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acceso administración | J-Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <section class="login">
+    <form id="formLogin" class="caja">
+      <img class="login-logo" src="img/logo.png" alt="J-Shop">
+      <h1>Administrar tienda</h1>
+      <p class="login-sub">Ingresa tu contraseña para acceder al panel de administración.</p>
+      <label for="clave">Contraseña</label>
+      <input id="clave" type="password" autocomplete="current-password" required>
+      <button class="btn-principal" type="submit">Entrar</button>
+      <p id="errorLogin" class="error" hidden>Contraseña incorrecta. Inténtalo de nuevo.</p>
+      <a href="index.html" class="volver">Volver al catálogo</a>
+    </form>
+  </section>
+
+  <script src="js/data.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

@@ -32,7 +32,37 @@ function obtener_producto(PDO $db, int $id): array
         fail('El producto no existe o fue eliminado', 404);
     }
 
-    return normalizar_producto($fila);
+    $producto = normalizar_producto($fila);
+    $variantes = cargar_variantes($db, [$id]);
+    $producto['variantes'] = $variantes[$id] ?? [];
+
+    return $producto;
+}
+
+function cargar_variantes(PDO $db, array $ids): array
+{
+    if (!$ids) {
+        return [];
+    }
+
+    $marcas = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $db->prepare(
+        "SELECT producto_id, modelo, precio
+         FROM producto_variantes
+         WHERE producto_id IN ($marcas)
+         ORDER BY id"
+    );
+    $stmt->execute(array_values($ids));
+
+    $porProducto = [];
+    foreach ($stmt->fetchAll() as $fila) {
+        $porProducto[(int) $fila['producto_id']][] = [
+            'modelo' => $fila['modelo'],
+            'precio' => (float) $fila['precio'],
+        ];
+    }
+
+    return $porProducto;
 }
 
 function validar_categoria(PDO $db, string $categoria): void
@@ -54,7 +84,15 @@ switch ($metodo) {
             ->query(SQL_PRODUCTO . ' WHERE p.activo = 1 ORDER BY p.id DESC')
             ->fetchAll();
 
-        ok(array_map('normalizar_producto', $filas));
+        $productos = array_map('normalizar_producto', $filas);
+        $variantes = cargar_variantes($db, array_column($productos, 'id'));
+
+        foreach ($productos as &$producto) {
+            $producto['variantes'] = $variantes[$producto['id']] ?? [];
+        }
+        unset($producto);
+
+        ok($productos);
         break;
 
     case 'POST':

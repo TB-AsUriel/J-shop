@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS movimientos_inventario;
 DROP TABLE IF EXISTS ventas;
 DROP TABLE IF EXISTS pedido_detalle;
 DROP TABLE IF EXISTS pedidos;
+DROP TABLE IF EXISTS producto_variantes;
 DROP TABLE IF EXISTS productos;
 DROP TABLE IF EXISTS categorias;
 SET FOREIGN_KEY_CHECKS = 1;
@@ -53,6 +54,22 @@ CREATE TABLE productos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
+-- Variantes de productos (ej. modelos de funda de color)
+-- ------------------------------------------------------------
+CREATE TABLE producto_variantes (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  producto_id INT UNSIGNED NOT NULL,
+  modelo VARCHAR(60) NOT NULL,
+  precio DECIMAL(10,2) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_variante (producto_id, modelo),
+  KEY idx_variante_producto (producto_id),
+  CONSTRAINT fk_variante_producto FOREIGN KEY (producto_id)
+    REFERENCES productos (id) ON DELETE CASCADE,
+  CONSTRAINT chk_variante_precio CHECK (precio >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
 -- Pedidos
 -- ------------------------------------------------------------
 CREATE TABLE pedidos (
@@ -63,6 +80,9 @@ CREATE TABLE pedidos (
   estado ENUM('pendiente','completado','cancelado') NOT NULL DEFAULT 'pendiente',
   total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   fecha_venta DATETIME NULL,
+  fecha_entrega DATE NULL,
+  hora_entrega TIME NULL,
+  lugar VARCHAR(80) NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uq_pedidos_folio (folio),
   KEY idx_pedidos_estado (estado),
@@ -78,6 +98,7 @@ CREATE TABLE pedido_detalle (
   pedido_id INT UNSIGNED NOT NULL,
   producto_id INT UNSIGNED NULL,
   nombre_producto VARCHAR(150) NOT NULL,
+  modelo VARCHAR(60) NULL,
   precio_unitario DECIMAL(10,2) NOT NULL,
   cantidad INT NOT NULL,
   subtotal DECIMAL(10,2) NOT NULL,
@@ -159,12 +180,20 @@ INSERT INTO categorias (id, nombre, icono) VALUES
 -- Datos iniciales: productos
 -- ------------------------------------------------------------
 INSERT INTO productos (id, nombre, categoria_id, precio, stock, imagen) VALUES
-(1, 'EarPods con conector Lightning', 'audifonos-cable', 450.00, 12, 'img/earpods.jpg'),
-(2, 'Audífonos Bluetooth con estuche de carga', 'audifonos-inalambricos', 899.00, 8, 'img/audifonos-bt.jpg'),
-(3, 'Cable USB-C a Lightning 1 m', 'cables', 249.00, 25, 'img/cable.jpg'),
-(4, 'Cargador de pared 20 W USB-C', 'cargadores', 329.00, 15, 'img/cargador.jpg'),
-(5, 'Funda de silicón transparente', 'fundas', 199.00, 3, 'img/funda.jpg'),
-(6, 'Reloj inteligente con llamadas', 'relojes', 1290.00, 5, 'img/reloj.jpg');
+(1, 'EarPods con conector Lightning', 'audifonos-cable', 70.00, 12, 'img/audifonos-cable.jpg'),
+(2, 'Audífonos Bluetooth con estuche de carga', 'audifonos-inalambricos', 250.00, 8, 'img/audifonos-inalambricos.jpeg'),
+(3, 'Cable USB-C a Lightning 1 m', 'cables', 50.00, 25, 'img/cable-tipo-c.jpeg'),
+(4, 'Cargador de pared 20 W USB-C', 'cargadores', 70.00, 15, 'img/cargador-lightning.jpeg'),
+(5, 'Funda transparente con MagSafe', 'fundas', 50.00, 3, 'img/fundas-transparentes.jpeg'),
+(6, 'Reloj inteligente con llamadas', 'relojes', 450.00, 5, 'img/reloj.jpeg'),
+(7, 'Funda de color', 'fundas', 100.00, 20, 'img/funda.jpg');
+
+-- ------------------------------------------------------------
+-- Datos iniciales: variantes de productos
+-- ------------------------------------------------------------
+INSERT INTO producto_variantes (producto_id, modelo, precio) VALUES
+(7, 'iPhone 11-15', 100.00),
+(7, 'iPhone 16-17', 150.00);
 
 -- Movimientos iniciales de entrada por la carga de inventario
 INSERT INTO movimientos_inventario (producto_id, tipo, cantidad, stock_anterior, stock_nuevo, motivo)
