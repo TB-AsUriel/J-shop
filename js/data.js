@@ -4,7 +4,7 @@ const CONFIG = {
   // Número con lada de país y sin "+" ni espacios. Ej. México: 52 + 10 dígitos
   whatsapp: "522224809352",
   // Número del proveedor (con lada de país, sin "+" ni espacios)
-  whatsappProveedor: "52229047404",
+  whatsappProveedor: "2212631704",
   moneda: "$",
   adminPassword: "admin123" // CÁMBIALA. Solo es protección de demostración
 };
@@ -19,13 +19,13 @@ const LUGARES = [
 ];
 
 const CATEGORIAS = [
-  { id: "audifonos-cable", nombre: "Audífonos con cable", icono: "🎧" },
-  { id: "audifonos-inalambricos", nombre: "Audífonos inalámbricos", icono: "🎵" },
-  { id: "cables", nombre: "Cables", icono: "🔌" },
-  { id: "cargadores", nombre: "Cargadores", icono: "⚡" },
-  { id: "fundas", nombre: "Fundas", icono: "📱" },
-  { id: "relojes", nombre: "Relojes", icono: "⌚" },
-  { id: "otros", nombre: "Otros", icono: "🧩" }
+  { id: "audifonos-cable", nombre: "Audífonos con cable", icono: "headphones" },
+  { id: "audifonos-inalambricos", nombre: "Audífonos inalámbricos", icono: "music" },
+  { id: "cables", nombre: "Cables", icono: "plug" },
+  { id: "cargadores", nombre: "Cargadores", icono: "zap" },
+  { id: "fundas", nombre: "Fundas", icono: "smartphone" },
+  { id: "relojes", nombre: "Relojes", icono: "watch" },
+  { id: "otros", nombre: "Otros", icono: "shapes" }
 ];
 
 /* ===== Almacenamiento local del carrito ===== */

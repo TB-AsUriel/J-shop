@@ -22,7 +22,7 @@
     <div class="barra-acciones">
       <a class="enlace-admin" href="login.html">Administrar tienda</a>
       <button id="btnCarrito" class="btn-carrito" aria-label="Abrir pedido">
-        <span class="carrito-icono" aria-hidden="true">🛍️</span>
+        <span class="carrito-icono" data-icono="shopping-bag" aria-hidden="true"></span>
         <span class="carrito-texto">Mi pedido</span>
         <span id="contadorCarrito" class="contador">0</span>
       </button>
@@ -32,33 +32,33 @@
   <main>
     <section class="portada">
       <div class="portada-texto">
-        <span class="pildora">✨ Nuevo · Envío el mismo día</span>
+        <span class="pildora"><span class="pildora-icono" data-icono="sparkles" aria-hidden="true"></span> Nuevo · Envío el mismo día</span>
         <h1>Todo lo que tu iPhone necesita, <span class="grad">en stock hoy</span></h1>
         <p>Elige tus accesorios favoritos, arma tu pedido y recíbelo sin complicaciones. Atención personal por WhatsApp.</p>
         <div class="buscador">
-          <span class="buscador-icono" aria-hidden="true">🔍</span>
+          <span class="buscador-icono" data-icono="search" aria-hidden="true"></span>
           <input id="buscador" type="search" placeholder="Busca audífonos, cargadores, fundas…" aria-label="Buscar productos">
         </div>
         <div class="portada-datos">
           <div><strong>+2,000</strong><span>clientes felices</span></div>
-          <div><strong>4.9★</strong><span>calificación</span></div>
+          <div><strong>4.9<span class="rating-star" data-icono="star" aria-hidden="true"></span></strong><span>calificación</span></div>
           <div><strong>24 h</strong><span>envíos express</span></div>
         </div>
       </div>
       <div class="portada-visual">
         <div class="portada-glow" aria-hidden="true"></div>
         <img src="img/hero.jpg" alt="iPhone con accesorios: audífonos, reloj y cargador" class="portada-img">
-        <span class="etiqueta-flota a">⚡ Carga rápida</span>
-        <span class="etiqueta-flota b">🎧 Sonido premium</span>
-        <span class="etiqueta-flota c">✅ Garantía incluida</span>
+        <span class="etiqueta-flota a"><span class="etiqueta-icono" data-icono="zap" aria-hidden="true"></span> Carga rápida</span>
+        <span class="etiqueta-flota b"><span class="etiqueta-icono" data-icono="headphones" aria-hidden="true"></span> Sonido premium</span>
+        <span class="etiqueta-flota c"><span class="etiqueta-icono" data-icono="shield-check" aria-hidden="true"></span> Garantía incluida</span>
       </div>
     </section>
 
     <section id="beneficios" class="beneficios" aria-label="Beneficios de comprar en J-Shop">
-      <div class="beneficio"><span class="beneficio-icono">🚚</span><div><strong>Envío express</strong><small>Entregas el mismo día</small></div></div>
-      <div class="beneficio"><span class="beneficio-icono">🛡️</span><div><strong>Garantía real</strong><small>Productos verificados</small></div></div>
-      <div class="beneficio"><span class="beneficio-icono">💳</span><div><strong>Pago seguro</strong><small>Efectivo o transferencia</small></div></div>
-      <div class="beneficio"><span class="beneficio-icono">💬</span><div><strong>Atención 1 a 1</strong><small>Te ayudamos por WhatsApp</small></div></div>
+      <div class="beneficio"><span class="beneficio-icono" data-icono="truck" aria-hidden="true"></span><div><strong>Envío express</strong><small>Entregas el mismo día</small></div></div>
+      <div class="beneficio"><span class="beneficio-icono" data-icono="shield" aria-hidden="true"></span><div><strong>Garantía real</strong><small>Productos verificados</small></div></div>
+      <div class="beneficio"><span class="beneficio-icono" data-icono="credit-card" aria-hidden="true"></span><div><strong>Pago seguro</strong><small>Efectivo o transferencia</small></div></div>
+      <div class="beneficio"><span class="beneficio-icono" data-icono="message-circle" aria-hidden="true"></span><div><strong>Atención 1 a 1</strong><small>Te ayudamos por WhatsApp</small></div></div>
     </section>
 
     <div class="chips-zona">
@@ -107,7 +107,7 @@
         <h2>Mi pedido</h2>
         <span id="panelResumen" class="panel-resumen">0 productos</span>
       </div>
-      <button id="cerrarCarrito" class="btn-icono" aria-label="Cerrar">✕</button>
+      <button id="cerrarCarrito" class="btn-icono" aria-label="Cerrar"><span data-icono="x" aria-hidden="true"></span></button>
     </div>
     <div id="itemsCarrito" class="items"></div>
     <div class="panel-pie">
@@ -130,15 +130,16 @@
           </select>
         </div>
       </div>
-      <button id="btnEnviar" class="btn-wa"><span aria-hidden="true">💬</span> Pedir por WhatsApp</button>
+      <button id="btnEnviar" class="btn-wa"><span data-icono="message-circle" aria-hidden="true"></span> Pedir por WhatsApp</button>
     </div>
   </aside>
 
   <a id="btnWhatsapp" class="wa-flotante" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
-    <span class="wa-icono" aria-hidden="true">💬</span>
+    <span class="wa-icono" data-icono="message-circle" aria-hidden="true"></span>
     <span class="wa-texto">WhatsApp</span>
   </a>
 
+  <script src="js/icons.js"></script>
   <script src="js/api.js"></script>
   <script src="js/data.js"></script>
   <script src="js/catalogo.js"></script>

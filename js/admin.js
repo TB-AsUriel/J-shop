@@ -4,6 +4,7 @@ let productosAdmin = [];
 let productosProveedor = [];
 let seleccionProveedor = new Set();
 let pedidosAdmin = [];
+const STOCK_BAJO = 3;
 
 /* ----- Sesión ----- */
 $("#btnSalir").addEventListener("click", () => {
@@ -19,7 +20,42 @@ $$(".pestana").forEach(b => b.addEventListener("click", () => {
 }));
 
 async function renderTodo() {
-  await Promise.all([renderVentas(), renderPedidos(), renderInventario(), renderProveedores()]);
+  await Promise.all([renderVentas(), renderPedidos(), renderInventario(), renderProveedores(), renderUtilidad()]);
+}
+
+/* ===== Helpers de gráficas ===== */
+function barrasVerticales(filas) {
+  const max = Math.max(1, ...filas.map(f => Math.abs(Number(f.valor) || 0)));
+  return filas.map(f => {
+    const valor = Number(f.valor) || 0;
+    const alto = Math.min(100, (Math.abs(valor) / max) * 100);
+    return `<div class="barra-dia">
+      <b>${esc(f.texto)}</b>
+      <div class="col ${f.clase || ""}" style="height:${alto}%"></div>
+      <span>${esc(f.etiqueta)}</span>
+    </div>`;
+  }).join("");
+}
+
+function barrasHorizontales(filas) {
+  const max = Math.max(1, ...filas.map(f => Math.abs(Number(f.valor) || 0)));
+  return filas.map(f => {
+    const valor = Number(f.valor) || 0;
+    const ancho = Math.min(100, (Math.abs(valor) / max) * 100);
+    return `<div class="barra-h">
+      <span class="barra-h-etiqueta" title="${esc(f.etiqueta)}">${esc(f.etiqueta)}</span>
+      <div class="pista"><div class="relleno ${f.clase || ""}" style="width:${ancho}%"></div></div>
+      <span class="barra-h-valor">${esc(f.texto)}</span>
+    </div>`;
+  }).join("");
+}
+
+function etiquetaStock(stock) {
+  const n = Number(stock);
+  if (n === 0) return "Agotado";
+  if (n === 1) return "Solo queda 1";
+  if (n <= STOCK_BAJO) return `Solo quedan ${n}`;
+  return "";
 }
 
 /* ===== VENTAS: día, semana, mes ===== */
@@ -113,7 +149,231 @@ $("#reporteDesde").addEventListener("change", renderReporteProductos);
 $("#reporteHasta").addEventListener("change", renderReporteProductos);
 $$("[data-periodo]").forEach(b => b.addEventListener("click", () => aplicarPeriodo(b.dataset.periodo)));
 
+/* ===== UTILIDAD ===== */
+function inicializarPeriodoUtilidad() {
+  const desde = $("#utilidadDesde");
+  const hasta = $("#utilidadHasta");
+  const hoy = new Date();
+  if (!desde.value) {
+    desde.value = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-01`;
+  }
+  if (!hasta.value) {
+    hasta.value = isoLocal(hoy);
+  }
+  if (!$("#gFecha").value) {
+    $("#gFecha").value = isoLocal(hoy);
+  }
+}
+
+async function renderUtilidad() {
+  inicializarPeriodoUtilidad();
+  const desde = $("#utilidadDesde").value;
+  const hasta = $("#utilidadHasta").value;
+
+  try {
+    const datos = await API.utilidad(desde, hasta);
+    if (!desde) $("#utilidadDesde").value = datos.desde;
+    if (!hasta) $("#utilidadHasta").value = datos.hasta;
+
+    const tarjetas = [
+      ["Ingresos", dinero(datos.ingresos), `${datos.piezas} pieza(s)`],
+      ["Costo de productos", dinero(datos.costo_total), "Costo del proveedor"],
+      ["Utilidad bruta", dinero(datos.utilidad_bruta), "Ventas − costo"],
+      ["Margen", `${Number(datos.margen).toFixed(2)}%`, "Utilidad ÷ ventas"],
+      ["Gastos del periodo", dinero(datos.gastos), "Gastos del negocio"],
+      ["Utilidad neta", dinero(datos.utilidad_neta), "Utilidad bruta − gastos"]
+    ];
+
+    $("#metricasUtilidad").innerHTML = tarjetas.map(([titulo, valor, nota], i) => {
+      const negativa = (i === 2 && datos.utilidad_bruta < 0) || (i === 5 && datos.utilidad_neta < 0);
+      return `<div class="metrica${negativa ? " metrica-negativa" : ""}">
+        <span>${titulo}</span><strong>${valor}</strong><small>${nota}</small>
+      </div>`;
+    }).join("");
+
+    renderGraficasUtilidad(datos);
+
+    if (!datos.productos.length) {
+      $("#tablaUtilidad").innerHTML = `<tr><td colspan="7" class="nota">No hay ventas en este periodo.</td></tr>`;
+    } else {
+      $("#tablaUtilidad").innerHTML = datos.productos.map(p => `
+        <tr>
+          <td>${esc(p.nombre)}</td>
+          <td>${p.piezas}</td>
+          <td>${dinero(p.ingresos)}</td>
+          <td>${dinero(p.costo_unitario)}</td>
+          <td>${dinero(p.costo_total)}</td>
+          <td class="${p.utilidad_bruta < 0 ? "valor-negativo" : "valor-positivo"}">${dinero(p.utilidad_bruta)}</td>
+          <td class="${p.margen < 0 ? "valor-negativo" : "valor-positivo"}">${Number(p.margen).toFixed(2)}%</td>
+        </tr>`).join("");
+    }
+
+    $("#resumenUtilidad").textContent =
+      `Periodo ${datos.desde} a ${datos.hasta} · ${datos.piezas} pieza(s) · Margen ${Number(datos.margen).toFixed(2)}%`;
+  } catch (e) {
+    avisar(e.message);
+  }
+
+  await renderGastos(desde, hasta);
+}
+
+function renderGraficasUtilidad(datos) {
+  const filas = [
+    { etiqueta: "Ingresos", valor: datos.ingresos, texto: dinero(datos.ingresos), clase: "ingreso" },
+    { etiqueta: "Costo de productos", valor: datos.costo_total, texto: dinero(datos.costo_total), clase: "costo" },
+    {
+      etiqueta: "Utilidad bruta",
+      valor: datos.utilidad_bruta,
+      texto: dinero(datos.utilidad_bruta),
+      clase: datos.utilidad_bruta < 0 ? "negativo" : "positivo"
+    },
+    { etiqueta: "Gastos", valor: datos.gastos, texto: dinero(datos.gastos), clase: "gasto" },
+    {
+      etiqueta: "Utilidad neta",
+      valor: datos.utilidad_neta,
+      texto: dinero(datos.utilidad_neta),
+      clase: datos.utilidad_neta < 0 ? "negativo" : "positivo"
+    }
+  ];
+
+  $("#graficaUtilidadComparativo").innerHTML = barrasHorizontales(filas);
+
+  const productos = [...datos.productos].sort((a, b) => Number(b.utilidad_bruta) - Number(a.utilidad_bruta));
+  $("#graficaUtilidadProductos").innerHTML = productos.length
+    ? barrasHorizontales(productos.map(p => ({
+        etiqueta: p.nombre,
+        valor: p.utilidad_bruta,
+        texto: `${dinero(p.utilidad_bruta)} · ${Number(p.margen).toFixed(1)}%`,
+        clase: Number(p.utilidad_bruta) < 0 ? "negativo" : "positivo"
+      })))
+    : `<p class="nota">No hay ventas en este periodo.</p>`;
+}
+
+async function renderGastos(desde, hasta) {
+  try {
+    const gastos = await API.gastos(desde, hasta);
+
+    if (!gastos.length) {
+      $("#tablaGastos").innerHTML = `<tr><td colspan="4" class="nota">No hay gastos registrados en este periodo.</td></tr>`;
+    } else {
+      $("#tablaGastos").innerHTML = gastos.map(g => `
+        <tr>
+          <td>${esc(g.fecha)}</td>
+          <td>${esc(g.concepto)}</td>
+          <td>${dinero(g.monto)}</td>
+          <td><button class="btn-borrar" data-borrar-gasto="${g.id}">Eliminar</button></td>
+        </tr>`).join("");
+    }
+
+    const total = gastos.reduce((suma, g) => suma + Number(g.monto), 0);
+    $("#totalGastos").textContent = `Total de gastos del periodo: ${dinero(total)}`;
+  } catch (e) {
+    avisar(e.message);
+  }
+}
+
+function aplicarPeriodoUtilidad(tipo) {
+  const hoy = new Date();
+  let desde;
+  if (tipo === "hoy") {
+    desde = new Date(hoy);
+  } else if (tipo === "semana") {
+    desde = new Date(hoy);
+    desde.setDate(desde.getDate() - 6);
+  } else {
+    desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  }
+  $("#utilidadDesde").value = isoLocal(desde);
+  $("#utilidadHasta").value = isoLocal(hoy);
+  renderUtilidad();
+}
+
+$("#utilidadDesde").addEventListener("change", renderUtilidad);
+$("#utilidadHasta").addEventListener("change", renderUtilidad);
+$$("[data-periodo-utilidad]").forEach(b => b.addEventListener("click", () => aplicarPeriodoUtilidad(b.dataset.periodoUtilidad)));
+
+$("#formGasto").addEventListener("submit", async e => {
+  e.preventDefault();
+  try {
+    await API.crearGasto({
+      concepto: $("#gConcepto").value.trim(),
+      monto: parseFloat($("#gMonto").value),
+      fecha: $("#gFecha").value
+    });
+    $("#gConcepto").value = "";
+    $("#gMonto").value = "";
+    avisar("Gasto agregado");
+    renderUtilidad();
+  } catch (err) {
+    avisar(err.message);
+  }
+});
+
 /* ===== PEDIDOS ===== */
+function renderResumenPedidos(todos) {
+  const estados = [
+    { id: "pendiente", nombre: "Pendientes" },
+    { id: "completado", nombre: "Vendidos" },
+    { id: "cancelado", nombre: "Cancelados" }
+  ];
+
+  const resumen = estados.map(e => {
+    const pedidos = todos.filter(p => p.estado === e.id);
+    return {
+      ...e,
+      cantidad: pedidos.length,
+      total: pedidos.reduce((suma, p) => suma + Number(p.total || 0), 0)
+    };
+  });
+
+  $("#metricasPedidos").innerHTML = [
+    ["Pedidos totales", todos.length, "Todos los estados"],
+    ...resumen.map(r => [r.nombre, r.cantidad, dinero(r.total)])
+  ].map(([titulo, valor, nota]) =>
+    `<div class="metrica">
+      <span>${titulo}</span><strong>${valor}</strong><small>${nota}</small>
+    </div>`
+  ).join("");
+
+  if (!todos.length) {
+    $("#graficaPedidosEstado").innerHTML = `<p class="nota">Aún no hay pedidos registrados.</p>`;
+    $("#graficaPedidosDias").innerHTML = `<p class="nota">Aún no hay pedidos registrados.</p>`;
+    return;
+  }
+
+  $("#graficaPedidosEstado").innerHTML = barrasVerticales(resumen.map(r => ({
+    etiqueta: r.nombre,
+    valor: r.cantidad,
+    texto: `${r.cantidad} · ${dinero(r.total)}`,
+    clase: r.id
+  })));
+
+  const abreviaturas = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+  const hoy = new Date();
+  const porDia = {};
+  todos.forEach(p => {
+    if (!p.fecha) return;
+    const fecha = new Date(p.fecha.replace(" ", "T"));
+    if (Number.isNaN(fecha.getTime())) return;
+    const clave = isoLocal(fecha);
+    porDia[clave] = (porDia[clave] || 0) + 1;
+  });
+
+  const dias = [];
+  for (let i = 6; i >= 0; i--) {
+    const dia = new Date(hoy);
+    dia.setDate(hoy.getDate() - i);
+    const cantidad = porDia[isoLocal(dia)] || 0;
+    dias.push({
+      etiqueta: `${abreviaturas[dia.getDay()]} ${dia.getDate()}`,
+      valor: cantidad,
+      texto: `${cantidad} pedido(s)`
+    });
+  }
+
+  $("#graficaPedidosDias").innerHTML = barrasVerticales(dias);
+}
+
 async function renderPedidos() {
   let todos;
   try {
@@ -124,6 +384,8 @@ async function renderPedidos() {
     return;
   }
   pedidosAdmin = todos;
+
+  renderResumenPedidos(todos);
 
   const pend = todos.filter(p => p.estado === "pendiente").length;
   $("#badgePedidos").textContent = pend || "";
@@ -136,9 +398,9 @@ async function renderPedidos() {
   const nombres = { pendiente: "Pendiente", completado: "Vendido", cancelado: "Cancelado" };
   $("#listaPedidos").innerHTML = lista.map(p => {
     const entrega = [];
-    if (p.fechaEntrega) entrega.push(`📅 ${esc(p.fechaEntrega)}`);
-    if (p.horaEntrega) entrega.push(`🕒 ${esc(p.horaEntrega)}`);
-    if (p.lugar) entrega.push(`📍 ${esc(p.lugar)}`);
+    if (p.fechaEntrega) entrega.push(`${icono("calendar")} ${esc(p.fechaEntrega)}`);
+    if (p.horaEntrega) entrega.push(`${icono("clock")} ${esc(p.horaEntrega)}`);
+    if (p.lugar) entrega.push(`${icono("map-pin")} ${esc(p.lugar)}`);
 
     const acciones = p.estado === "pendiente"
       ? `<button class="btn-vender" data-vender="${p.id}">Marcar como vendido</button><button class="btn-cancelar" data-cancelar="${p.id}">Cancelar</button>`
@@ -193,24 +455,89 @@ $("#pCategoria").innerHTML = CATEGORIAS.map(c => `<option value="${c.id}">${esc(
 
 async function renderInventario() {
   try {
-    productosAdmin = await API.productos();
+    productosAdmin = await API.productos(true);
   } catch (e) {
     avisar(e.message);
     return;
   }
 
-  $("#tablaProductos").innerHTML = productosAdmin.map(p => `
+  renderResumenInventario();
+
+  $("#tablaProductos").innerHTML = productosAdmin.map(p => {
+    const alerta = etiquetaStock(p.stock);
+    const agotado = Number(p.stock) === 0;
+    return `
     <tr>
       <td>${esc(p.nombre)}</td>
       <td>${esc(categoriaDe(p.categoria).nombre)}</td>
       <td><input type="number" min="0" step="0.01" value="${p.precio}" data-precio="${p.id}" aria-label="Precio de ${esc(p.nombre)}"></td>
-      <td><div class="stock-ctrl ${p.stock <= 3 ? "stock-bajo" : ""}">
-        <button data-stock-menos="${p.id}" aria-label="Restar uno">−</button>
-        <input type="number" min="0" step="1" value="${p.stock}" data-stock="${p.id}" aria-label="Stock de ${esc(p.nombre)}">
-        <button data-stock-mas="${p.id}" aria-label="Sumar uno">+</button>
-      </div></td>
+      <td><input type="number" min="0" step="0.01" value="${p.costo}" data-costo="${p.id}" aria-label="Costo de ${esc(p.nombre)}"></td>
+      <td>
+        <div class="stock-ctrl ${Number(p.stock) <= STOCK_BAJO ? "stock-bajo" : ""}">
+          <button data-stock-menos="${p.id}" aria-label="Restar uno">−</button>
+          <input type="number" min="0" step="1" value="${p.stock}" data-stock="${p.id}" aria-label="Stock de ${esc(p.nombre)}">
+          <button data-stock-mas="${p.id}" aria-label="Sumar uno">+</button>
+        </div>
+        ${alerta ? `<span class="alerta-stock${agotado ? " agotado" : ""}">${alerta}</span>` : ""}
+      </td>
       <td><button class="btn-borrar" data-borrar="${p.id}">Eliminar</button></td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
+}
+
+function renderResumenInventario() {
+  const unidades = productosAdmin.reduce((suma, p) => suma + Number(p.stock || 0), 0);
+  const bajos = productosAdmin
+    .filter(p => Number(p.stock) > 0 && Number(p.stock) <= STOCK_BAJO)
+    .sort((a, b) => Number(a.stock) - Number(b.stock));
+  const agotados = productosAdmin.filter(p => Number(p.stock) === 0);
+
+  $("#metricasInventario").innerHTML = [
+    ["Productos", productosAdmin.length, "En catálogo"],
+    ["Unidades en stock", unidades, "Piezas disponibles"],
+    ["Stock bajo", bajos.length, `Quedan ${STOCK_BAJO} o menos`],
+    ["Agotados", agotados.length, "Sin unidades"]
+  ].map(([titulo, valor, nota], i) => {
+    const alerta = i >= 2 && valor > 0 ? " metrica-alerta" : "";
+    return `<div class="metrica${alerta}">
+      <span>${titulo}</span><strong>${valor}</strong><small>${nota}</small>
+    </div>`;
+  }).join("");
+
+  const alertas = [...agotados, ...bajos].sort((a, b) => Number(a.stock) - Number(b.stock));
+  const banner = $("#alertasInventario");
+  if (alertas.length) {
+    banner.hidden = false;
+    banner.innerHTML = `
+      <div class="alerta-cab">
+        ${icono("alert-triangle")}
+        <strong>${alertas.length} producto(s) requieren reposición</strong>
+      </div>
+      <div class="alerta-chips">
+        ${alertas.map(p => {
+          const agotado = Number(p.stock) === 0;
+          return `<span class="alerta-chip${agotado ? " agotado" : ""}">
+            ${esc(p.nombre)} · ${etiquetaStock(p.stock)}
+          </span>`;
+        }).join("")}
+      </div>`;
+  } else {
+    banner.hidden = true;
+    banner.innerHTML = "";
+  }
+
+  const ordenados = [...productosAdmin].sort((a, b) => Number(a.stock) - Number(b.stock));
+  $("#graficaInventario").innerHTML = ordenados.length
+    ? barrasHorizontales(ordenados.map(p => {
+        const stock = Number(p.stock);
+        return {
+          etiqueta: p.nombre,
+          valor: stock,
+          texto: stock === 0 ? "Agotado" : `${stock} ud${stock === 1 ? "" : "s"}.`,
+          clase: stock === 0 ? "agotado" : stock <= STOCK_BAJO ? "bajo" : "normal"
+        };
+      }))
+    : `<p class="nota">No hay productos en el inventario.</p>`;
 }
 
 async function actualizarProducto(id, campos) {
@@ -251,6 +578,7 @@ $("#formProducto").addEventListener("submit", async e => {
       nombre: $("#pNombre").value.trim(),
       categoria: $("#pCategoria").value,
       precio: parseFloat($("#pPrecio").value),
+      costo: parseFloat($("#pCosto").value),
       stock: parseInt($("#pStock").value, 10),
       imagen
     });
@@ -266,7 +594,7 @@ $("#formProducto").addEventListener("submit", async e => {
 /* ===== PROVEEDORES ===== */
 async function renderProveedores() {
   try {
-    const todos = await API.productos();
+    const todos = await API.productos(true);
     productosProveedor = todos.sort((a, b) => a.stock - b.stock);
   } catch (e) {
     avisar(e.message);
@@ -276,6 +604,18 @@ async function renderProveedores() {
   const sinProductos = productosProveedor.length === 0;
   $("#sinProveedores").hidden = !sinProductos;
   $("#btnMensajeProveedor").disabled = sinProductos;
+
+  $("#graficaProveedores").innerHTML = productosProveedor.length
+    ? barrasHorizontales(productosProveedor.map(p => {
+        const stock = Number(p.stock);
+        return {
+          etiqueta: p.nombre,
+          valor: stock,
+          texto: stock === 0 ? "Agotado" : `${stock} ud${stock === 1 ? "" : "s"}.`,
+          clase: stock === 0 ? "agotado" : stock <= STOCK_BAJO ? "bajo" : "normal"
+        };
+      }))
+    : `<p class="nota">No hay productos en el inventario.</p>`;
 
   seleccionProveedor = new Set();
   $("#seleccionarTodos").checked = false;
@@ -343,6 +683,17 @@ document.addEventListener("click", async e => {
     return;
   }
 
+  if (d.borrarGasto && confirm("¿Eliminar este gasto?")) {
+    try {
+      await API.eliminarGasto(Number(d.borrarGasto));
+      avisar("Gasto eliminado");
+      renderUtilidad();
+    } catch (err) {
+      avisar(err.message);
+    }
+    return;
+  }
+
   if (d.borrar && confirm("¿Eliminar este producto del catálogo?")) {
     try {
       await API.eliminarProducto(Number(d.borrar));
@@ -366,6 +717,16 @@ document.addEventListener("change", async e => {
     try {
       await API.actualizarProducto(Number(d.precio), { precio: Math.max(0, parseFloat(e.target.value) || 0) });
       avisar("Precio actualizado");
+    } catch (err) {
+      avisar(err.message);
+    }
+  }
+
+  if (d.costo) {
+    try {
+      await API.actualizarProducto(Number(d.costo), { costo: Math.max(0, parseFloat(e.target.value) || 0) });
+      avisar("Costo actualizado");
+      renderUtilidad();
     } catch (err) {
       avisar(err.message);
     }

@@ -20,9 +20,9 @@ let texto = "";
 function guardarCarrito() { DB.guardar("carrito", carrito); }
 
 function renderCategorias() {
-  const todas = [{ id: "todos", nombre: "Todo", icono: "✨" }, ...CATEGORIAS];
+  const todas = [{ id: "todos", nombre: "Todo", icono: "grid" }, ...CATEGORIAS];
   $("#categorias").innerHTML = todas.map(c =>
-    `<button class="chip ${c.id === categoriaActiva ? "activo" : ""}" data-cat="${c.id}"><span>${c.icono}</span>${esc(c.nombre)}</button>`
+    `<button class="chip ${c.id === categoriaActiva ? "activo" : ""}" data-cat="${c.id}"><span class="chip-icono">${icono(c.icono)}</span>${esc(c.nombre)}</button>`
   ).join("");
 }
 
@@ -48,7 +48,7 @@ function renderProductos() {
       : "";
     return `<article class="tarjeta">
       <div class="tarjeta-img cat-${p.categoria}">
-        <span class="img-fallback" aria-hidden="true">${cat.icono}</span>
+        <span class="img-fallback" aria-hidden="true">${icono(cat.icono)}</span>
         ${img}${p.stock <= 5 ? `<span class="pocas">Quedan ${p.stock}</span>` : ""}
       </div>
       <div class="tarjeta-cuerpo">
@@ -106,7 +106,7 @@ function renderCarrito() {
     const variantes = i.variantes || [];
     const foto = i.imagen
       ? `<img class="item-img" src="${i.imagen}" alt="${esc(i.nombre)}" loading="lazy" onerror="this.remove()">`
-      : `<span class="item-img item-img-icono" aria-hidden="true">${cat.icono}</span>`;
+      : `<span class="item-img item-img-icono" aria-hidden="true">${icono(cat.icono)}</span>`;
     const selector = variantes.length
       ? `<label class="item-modelo">Modelo
            <select data-modelo="${i.linea}">
@@ -128,7 +128,7 @@ function renderCarrito() {
           <button data-mas="${i.linea}" aria-label="Agregar uno">+</button>
         </div>
       </div>
-      <button class="item-quitar" data-quitar="${i.linea}" aria-label="Quitar ${esc(i.nombre)}">✕</button>
+      <button class="item-quitar" data-quitar="${i.linea}" aria-label="Quitar ${esc(i.nombre)}">${icono("x")}</button>
     </div>`;
   }).join("") : `<p class="vacio">Tu pedido está vacío. Agrega productos del catálogo.</p>`;
 }

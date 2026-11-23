@@ -20,6 +20,8 @@ input, select { width: 100%; padding: 11px 13px; border: 1.5px solid var(--linea
 .pestanas { display: flex; gap: 6px; padding: 12px clamp(16px, 4vw, 48px) 0; border-bottom: 1px solid var(--linea); background: var(--superficie); overflow-x: auto; }
 .pestana { border: 0; background: none; padding: 12px 18px; font-weight: 700; color: var(--tinta-suave); border-bottom: 3px solid transparent; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
 .pestana.activa { color: var(--tinta); border-bottom-color: var(--acento); }
+.pestana-icono { display: inline-flex; align-items: center; justify-content: center; }
+.pestana-icono .icono { width: 18px; height: 18px; }
 .contenido { max-width: 1100px; margin: 0 auto; padding: 28px clamp(16px, 4vw, 48px) 60px; }
 .titulo-pagina { font-size: clamp(1.9rem, 3.4vw, 2.5rem); font-weight: 800; letter-spacing: -.03em; margin-bottom: 18px; }
 .contenido h2 { font-size: 1.7rem; letter-spacing: -.02em; margin: 32px 0 16px; }
@@ -94,6 +96,7 @@ tbody tr:hover { background: #fafbff; }
 
 /* ===== Pedidos: entrega ===== */
 .pedido-entrega { margin-top: 6px; font-weight: 600; }
+.pedido-entrega .icono { width: 15px; height: 15px; vertical-align: -0.15em; }
 
 /* ===== Proveedores ===== */
 .proveedor-controles {
@@ -117,7 +120,79 @@ tbody tr:hover { background: #fafbff; }
 .proveedor-cantidad input { width: 90px; padding: 8px 10px; text-align: center; }
 #btnMensajeProveedor:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
 
+/* ===== Utilidad ===== */
+#metricasUtilidad { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+#metricasUtilidad .metrica strong { font-size: 1.7rem; }
+.metrica-negativa { border-top-color: var(--alerta) !important; }
+.metrica-negativa strong { color: var(--alerta); }
+.valor-positivo { color: #0b6b4b; font-weight: 700; }
+.valor-negativo { color: var(--alerta); font-weight: 700; }
+#tablaUtilidad td:not(:first-child) { font-weight: 700; }
+#tablaUtilidad td:nth-child(2) { color: var(--tinta-suave); }
+.form-gasto { margin-bottom: 16px; }
+.tabla-gastos { margin-top: 14px; }
+#tablaGastos td:nth-child(3) { font-weight: 700; }
+
+/* ===== Gráficas de pedidos ===== */
+.barra-dia .col.pendiente { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
+.barra-dia .col.completado { background: linear-gradient(180deg, #4ade80, var(--wa-oscuro)); }
+.barra-dia .col.cancelado { background: linear-gradient(180deg, #f87171, var(--alerta)); }
+.grafica-pedidos-dias .barra-dia .col { background: linear-gradient(180deg, #c084fc, var(--acento-2)); }
+.grafica > .nota { margin: auto; }
+#metricasPedidos, #metricasInventario { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+#metricasPedidos .metrica strong, #metricasInventario .metrica strong { font-size: 1.7rem; }
+
+/* ===== Inventario: alertas y gráfica ===== */
+.alertas-inventario {
+  margin-top: 18px; background: #fff7e6; border-left: 5px solid #f59e0b;
+  border-radius: var(--radio-sm); box-shadow: var(--sombra);
+  padding: 16px 18px; display: grid; gap: 10px;
+}
+.alertas-inventario[hidden] { display: none; }
+.alerta-cab { display: flex; align-items: center; gap: 9px; color: #8a5a00; }
+.alerta-cab .icono { width: 20px; height: 20px; flex: none; }
+.alerta-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.alerta-chip {
+  background: #fff; border: 1px solid #f5d08a; color: #8a5a00;
+  border-radius: 999px; padding: 5px 12px; font-size: .85rem; font-weight: 600;
+}
+.alerta-chip.agotado { border-color: #f3b4b6; color: var(--alerta); background: #fff5f5; }
+.alerta-stock { display: block; margin-top: 6px; font-size: .75rem; font-weight: 700; color: #a15c00; }
+.alerta-stock.agotado { color: var(--alerta); }
+.metrica-alerta { border-top-color: #f59e0b !important; }
+.metrica-alerta strong { color: #a15c00; }
+
+/* ===== Gráficas horizontales ===== */
+.grafica-horizontal {
+  background: var(--superficie); border-radius: var(--radio); box-shadow: var(--sombra);
+  padding: 20px; display: grid; gap: 12px; max-height: 460px; overflow-y: auto;
+}
+.grafica-horizontal > .nota { margin: 0; }
+.barra-h {
+  display: grid; grid-template-columns: minmax(110px, 220px) minmax(80px, 1fr) auto;
+  align-items: center; gap: 12px; font-size: .88rem;
+}
+.barra-h-etiqueta { color: var(--tinta); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra-h .pista { background: #eef0ff; height: 14px; border-radius: 999px; overflow: hidden; }
+.barra-h .relleno {
+  height: 100%; border-radius: 999px; min-width: 2px;
+  background: linear-gradient(90deg, #7c5cff, var(--acento));
+  transition: width .3s ease;
+}
+.barra-h .relleno.bajo { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+.barra-h .relleno.agotado { background: linear-gradient(90deg, #f87171, var(--alerta)); }
+.barra-h .relleno.positivo { background: linear-gradient(90deg, #4ade80, var(--wa-oscuro)); }
+.barra-h .relleno.negativo { background: linear-gradient(90deg, #f87171, var(--alerta)); }
+.barra-h .relleno.ingreso { background: linear-gradient(90deg, #7c5cff, var(--acento)); }
+.barra-h .relleno.costo { background: linear-gradient(90deg, #94a3b8, #64748b); }
+.barra-h .relleno.gasto { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+.barra-h-valor { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
 @media (max-width: 640px) {
   .periodo-acciones { margin-left: 0; }
   .proveedor-item { align-items: flex-start; }
+  .barra-h { grid-template-columns: 1fr auto; }
+  .barra-h-etiqueta { grid-column: 1; }
+  .barra-h-valor { grid-column: 2; }
+  .barra-h .pista { grid-column: 1 / -1; grid-row: 2; }
 }

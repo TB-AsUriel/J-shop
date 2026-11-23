@@ -45,8 +45,8 @@ const API = {
     return this.pedir("categorias.php");
   },
 
-  productos() {
-    return this.pedir("productos.php");
+  productos(admin = false) {
+    return this.pedir("productos.php", { query: admin ? { admin: 1 } : undefined });
   },
 
   crearProducto(producto) {
@@ -79,5 +79,21 @@ const API = {
 
   reporteVentas(desde, hasta) {
     return this.pedir("reporte_ventas.php", { query: { desde, hasta } });
+  },
+
+  utilidad(desde, hasta) {
+    return this.pedir("utilidad.php", { query: { desde, hasta } });
+  },
+
+  gastos(desde, hasta) {
+    return this.pedir("gastos.php", { query: { desde, hasta } });
+  },
+
+  crearGasto(gasto) {
+    return this.pedir("gastos.php", { method: "POST", body: gasto });
+  },
+
+  eliminarGasto(id) {
+    return this.pedir("gastos.php", { method: "DELETE", query: { id } });
   }
 };

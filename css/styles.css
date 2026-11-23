@@ -287,6 +287,28 @@ img { max-width: 100%; }
 }
 #aviso.visible { opacity: 1; transform: translate(-50%, 0); }
 
+/* ===== Iconos SVG ===== */
+.icono { display: inline-block; width: 1em; height: 1em; flex: none; vertical-align: -0.125em; pointer-events: none; }
+.carrito-icono, .pildora-icono, .buscador-icono, .etiqueta-icono, .beneficio-icono, .chip-icono, .wa-icono { display: inline-flex; align-items: center; justify-content: center; }
+.carrito-icono .icono { width: 18px; height: 18px; }
+.pildora-icono .icono { width: 15px; height: 15px; }
+.buscador-icono .icono { width: 18px; height: 18px; }
+.etiqueta-icono { margin-right: 4px; }
+.etiqueta-icono .icono { width: 15px; height: 15px; }
+.beneficio-icono { color: var(--acento); }
+.beneficio-icono .icono { width: 22px; height: 22px; }
+.chip-icono .icono { width: 17px; height: 17px; }
+.img-fallback .icono { width: 72px; height: 72px; stroke-width: 1.5; opacity: .5; }
+.item-img-icono .icono { width: 26px; height: 26px; }
+.btn-icono { display: grid; place-items: center; }
+.btn-icono .icono { width: 18px; height: 18px; }
+.item-quitar { display: inline-flex; align-items: center; justify-content: center; }
+.item-quitar .icono { width: 16px; height: 16px; }
+.wa-icono .icono { width: 18px; height: 18px; }
+.btn-wa .icono { width: 18px; height: 18px; }
+.rating-star { display: inline-flex; margin-left: 3px; color: var(--acento); vertical-align: -0.12em; }
+.rating-star .icono { width: 14px; height: 14px; fill: currentColor; }
+
 /* ===== Animaciones ===== */
 @keyframes subir { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }

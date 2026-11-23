@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/_helpers.php';
 
-const SQL_PRODUCTO = 'SELECT p.id, p.nombre, p.categoria_id AS categoria, p.precio, p.stock, p.imagen,
+const SQL_PRODUCTO = 'SELECT p.id, p.nombre, p.categoria_id AS categoria, p.precio, p.costo, p.stock, p.imagen,
                             c.nombre AS categoria_nombre, c.icono AS categoria_icono
                      FROM productos p
                      JOIN categorias c ON c.id = p.categoria_id';
@@ -17,6 +17,7 @@ function normalizar_producto(array $fila): array
         'categoria_nombre' => $fila['categoria_nombre'],
         'categoria_icono' => $fila['categoria_icono'],
         'precio' => (float) $fila['precio'],
+        'costo' => (float) $fila['costo'],
         'stock' => (int) $fila['stock'],
         'imagen' => $fila['imagen'],
     ];
@@ -86,9 +87,13 @@ switch ($metodo) {
 
         $productos = array_map('normalizar_producto', $filas);
         $variantes = cargar_variantes($db, array_column($productos, 'id'));
+        $incluirCosto = (string) param('admin', '') === '1';
 
         foreach ($productos as &$producto) {
             $producto['variantes'] = $variantes[$producto['id']] ?? [];
+            if (!$incluirCosto) {
+                unset($producto['costo']);
+            }
         }
         unset($producto);
 
@@ -102,6 +107,7 @@ switch ($metodo) {
         $nombre = trim((string) $data['nombre']);
         $categoria = (string) $data['categoria'];
         $precio = is_numeric($data['precio']) ? (float) $data['precio'] : -1;
+        $costo = isset($data['costo']) && is_numeric($data['costo']) ? (float) $data['costo'] : 0.0;
         $stock = is_numeric($data['stock']) ? (int) $data['stock'] : -1;
         $imagen = isset($data['imagen']) && is_string($data['imagen']) ? $data['imagen'] : null;
 
@@ -110,6 +116,9 @@ switch ($metodo) {
         }
         if ($precio < 0) {
             fail('El precio no puede ser negativo');
+        }
+        if ($costo < 0) {
+            fail('El costo no puede ser negativo');
         }
         if ($stock < 0) {
             fail('El stock no puede ser negativo');
@@ -121,9 +130,9 @@ switch ($metodo) {
 
         try {
             $stmt = $db->prepare(
-                'INSERT INTO productos (nombre, categoria_id, precio, stock, imagen) VALUES (?, ?, ?, ?, ?)'
+                'INSERT INTO productos (nombre, categoria_id, precio, costo, stock, imagen) VALUES (?, ?, ?, ?, ?, ?)'
             );
-            $stmt->execute([$nombre, $categoria, $precio, $stock, $imagen]);
+            $stmt->execute([$nombre, $categoria, $precio, $costo, $stock, $imagen]);
             $id = (int) $db->lastInsertId();
 
             if ($stock > 0) {
@@ -163,6 +172,7 @@ switch ($metodo) {
         $nombre = isset($data['nombre']) ? trim((string) $data['nombre']) : $actual['nombre'];
         $categoria = isset($data['categoria']) ? (string) $data['categoria'] : $actual['categoria_id'];
         $precio = isset($data['precio']) ? (float) $data['precio'] : (float) $actual['precio'];
+        $costo = isset($data['costo']) ? (float) $data['costo'] : (float) $actual['costo'];
         $stock = isset($data['stock']) ? (int) $data['stock'] : (int) $actual['stock'];
         $imagen = array_key_exists('imagen', $data) ? $data['imagen'] : $actual['imagen'];
 
@@ -171,6 +181,9 @@ switch ($metodo) {
         }
         if ($precio < 0) {
             fail('El precio no puede ser negativo');
+        }
+        if ($costo < 0) {
+            fail('El costo no puede ser negativo');
         }
         if ($stock < 0) {
             fail('El stock no puede ser negativo');
@@ -182,9 +195,9 @@ switch ($metodo) {
 
         try {
             $stmt = $db->prepare(
-                'UPDATE productos SET nombre = ?, categoria_id = ?, precio = ?, stock = ?, imagen = ? WHERE id = ?'
+                'UPDATE productos SET nombre = ?, categoria_id = ?, precio = ?, costo = ?, stock = ?, imagen = ? WHERE id = ?'
             );
-            $stmt->execute([$nombre, $categoria, $precio, $stock, $imagen, $id]);
+            $stmt->execute([$nombre, $categoria, $precio, $costo, $stock, $imagen, $id]);
 
             if ($stock !== (int) $actual['stock']) {
                 $mov = $db->prepare(

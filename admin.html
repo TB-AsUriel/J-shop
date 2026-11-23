@@ -21,10 +21,11 @@
     </header>
 
     <nav class="pestanas" role="tablist">
-      <button class="pestana activa" data-tab="ventas" role="tab"><span aria-hidden="true">📊</span> Ventas</button>
-      <button class="pestana" data-tab="pedidos" role="tab"><span aria-hidden="true">🧾</span> Pedidos <span id="badgePedidos" class="contador"></span></button>
-      <button class="pestana" data-tab="inventario" role="tab"><span aria-hidden="true">📦</span> Inventario</button>
-      <button class="pestana" data-tab="proveedores" role="tab"><span aria-hidden="true">🚚</span> Proveedores</button>
+      <button class="pestana activa" data-tab="ventas" role="tab"><span class="pestana-icono" data-icono="bar-chart" aria-hidden="true"></span> Ventas</button>
+      <button class="pestana" data-tab="pedidos" role="tab"><span class="pestana-icono" data-icono="receipt" aria-hidden="true"></span> Pedidos <span id="badgePedidos" class="contador"></span></button>
+      <button class="pestana" data-tab="inventario" role="tab"><span class="pestana-icono" data-icono="package" aria-hidden="true"></span> Inventario</button>
+      <button class="pestana" data-tab="proveedores" role="tab"><span class="pestana-icono" data-icono="truck" aria-hidden="true"></span> Proveedores</button>
+      <button class="pestana" data-tab="utilidad" role="tab"><span class="pestana-icono" data-icono="wallet" aria-hidden="true"></span> Utilidad</button>
     </nav>
 
     <main class="contenido">
@@ -63,6 +64,17 @@
       <!-- PEDIDOS -->
       <section id="tab-pedidos" class="tab" hidden>
         <h1 class="titulo-pagina">Pedidos</h1>
+
+        <div class="metricas" id="metricasPedidos"></div>
+
+        <h2>Pedidos por estado</h2>
+        <div id="graficaPedidosEstado" class="grafica"></div>
+        <p class="nota">Todos los pedidos registrados, agrupados por estado.</p>
+
+        <h2>Pedidos de los últimos 7 días</h2>
+        <div id="graficaPedidosDias" class="grafica grafica-pedidos-dias"></div>
+        <p class="nota">Pedidos registrados por día.</p>
+
         <div class="fila-titulo">
           <h2>Pedidos</h2>
           <select id="filtroEstado" aria-label="Filtrar por estado">
@@ -78,11 +90,16 @@
       <!-- INVENTARIO -->
       <section id="tab-inventario" class="tab" hidden>
         <h1 class="titulo-pagina">Inventario</h1>
+
+        <div class="metricas" id="metricasInventario"></div>
+        <div id="alertasInventario" class="alertas-inventario" hidden></div>
+
         <h2>Agregar producto</h2>
         <form id="formProducto" class="form-producto">
           <div><label for="pNombre">Nombre</label><input id="pNombre" required></div>
           <div><label for="pCategoria">Categoría</label><select id="pCategoria"></select></div>
           <div><label for="pPrecio">Precio</label><input id="pPrecio" type="number" min="0" step="0.01" required></div>
+          <div><label for="pCosto">Costo</label><input id="pCosto" type="number" min="0" step="0.01" value="0" required></div>
           <div><label for="pStock">Stock</label><input id="pStock" type="number" min="0" step="1" required></div>
           <div><label for="pImagen">Foto (opcional)</label><input id="pImagen" type="file" accept="image/*"></div>
           <button class="btn-principal" type="submit">Agregar al catálogo</button>
@@ -91,10 +108,14 @@
         <h2>Productos en catálogo</h2>
         <div class="tabla-scroll">
           <table>
-            <thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th></th></tr></thead>
+            <thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Costo</th><th>Stock</th><th></th></tr></thead>
             <tbody id="tablaProductos"></tbody>
           </table>
         </div>
+
+        <h2>Existencias por producto</h2>
+        <div id="graficaInventario" class="grafica-horizontal"></div>
+        <p class="nota">Las barras rojas indican 3 unidades o menos.</p>
       </section>
 
       <!-- PROVEEDORES -->
@@ -102,6 +123,10 @@
         <h1 class="titulo-pagina">Proveedores</h1>
         <h2>Inventario para reponer</h2>
         <p class="nota">Selecciona los artículos que quieres reponer y genera un mensaje automático para tu proveedor.</p>
+
+        <h2>Existencias por producto</h2>
+        <div id="graficaProveedores" class="grafica-horizontal"></div>
+        <p class="nota">Rojo: sin existencias · Ámbar: 3 unidades o menos.</p>
 
         <div class="proveedor-controles">
           <label class="check-todos"><input type="checkbox" id="seleccionarTodos"> Seleccionar todos</label>
@@ -111,9 +136,58 @@
         <div id="listaProveedores" class="lista-proveedores"></div>
         <p id="sinProveedores" class="nota" hidden>No hay productos en el inventario.</p>
       </section>
+
+      <!-- UTILIDAD -->
+      <section id="tab-utilidad" class="tab" hidden>
+        <h1 class="titulo-pagina">Utilidad</h1>
+
+        <h2>Utilidad por periodo</h2>
+        <div class="filtro-periodo">
+          <div><label for="utilidadDesde">Desde</label><input id="utilidadDesde" type="date"></div>
+          <div><label for="utilidadHasta">Hasta</label><input id="utilidadHasta" type="date"></div>
+          <div class="periodo-acciones">
+            <button type="button" class="btn-secundario" data-periodo-utilidad="hoy">Hoy</button>
+            <button type="button" class="btn-secundario" data-periodo-utilidad="semana">7 días</button>
+            <button type="button" class="btn-secundario" data-periodo-utilidad="mes">Este mes</button>
+          </div>
+        </div>
+
+        <div class="metricas" id="metricasUtilidad"></div>
+
+        <h2>Comparativo del periodo</h2>
+        <div id="graficaUtilidadComparativo" class="grafica-horizontal"></div>
+
+        <h2>Utilidad por producto</h2>
+        <div id="graficaUtilidadProductos" class="grafica-horizontal"></div>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Producto</th><th>Piezas</th><th>Ingresos</th><th>Costo unitario</th><th>Costo total</th><th>Utilidad bruta</th><th>Margen</th></tr></thead>
+            <tbody id="tablaUtilidad"></tbody>
+          </table>
+        </div>
+        <p id="resumenUtilidad" class="nota"></p>
+        <p class="nota">El costo utilizado es el costo actual registrado en Inventario.</p>
+
+        <h2>Gastos del negocio</h2>
+        <p class="nota">Registra los gastos del periodo para calcular la utilidad neta. La utilidad neta = utilidad bruta total − gastos del negocio.</p>
+        <form id="formGasto" class="form-producto form-gasto">
+          <div><label for="gConcepto">Concepto</label><input id="gConcepto" required placeholder="Ej. renta, publicidad, envíos"></div>
+          <div><label for="gMonto">Monto</label><input id="gMonto" type="number" min="0" step="0.01" required></div>
+          <div><label for="gFecha">Fecha</label><input id="gFecha" type="date" required></div>
+          <button class="btn-principal" type="submit">Agregar gasto</button>
+        </form>
+        <div class="tabla-scroll tabla-gastos">
+          <table>
+            <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th></th></tr></thead>
+            <tbody id="tablaGastos"></tbody>
+          </table>
+        </div>
+        <p id="totalGastos" class="nota"></p>
+      </section>
     </main>
   </div>
 
+  <script src="js/icons.js"></script>
   <script src="js/api.js"></script>
   <script src="js/data.js"></script>
   <script src="js/admin.js"></script>

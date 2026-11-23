@@ -13,6 +13,7 @@ USE jshop_db;
 SET FOREIGN_KEY_CHECKS = 0;
 DROP VIEW IF EXISTS vw_inventario_bajo;
 DROP VIEW IF EXISTS vw_ventas;
+DROP TABLE IF EXISTS gastos;
 DROP TABLE IF EXISTS movimientos_inventario;
 DROP TABLE IF EXISTS ventas;
 DROP TABLE IF EXISTS pedido_detalle;
@@ -40,6 +41,7 @@ CREATE TABLE productos (
   nombre VARCHAR(150) NOT NULL,
   categoria_id VARCHAR(40) NOT NULL,
   precio DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  costo DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   stock INT NOT NULL DEFAULT 0,
   imagen MEDIUMTEXT NULL,
   activo TINYINT(1) NOT NULL DEFAULT 1,
@@ -50,6 +52,7 @@ CREATE TABLE productos (
   KEY idx_productos_activo (activo),
   CONSTRAINT fk_productos_categoria FOREIGN KEY (categoria_id) REFERENCES categorias (id) ON UPDATE CASCADE,
   CONSTRAINT chk_productos_precio CHECK (precio >= 0),
+  CONSTRAINT chk_productos_costo CHECK (costo >= 0),
   CONSTRAINT chk_productos_stock CHECK (stock >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -146,6 +149,20 @@ CREATE TABLE movimientos_inventario (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
+-- Gastos del negocio (para calcular la utilidad neta)
+-- ------------------------------------------------------------
+CREATE TABLE gastos (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  concepto VARCHAR(150) NOT NULL,
+  monto DECIMAL(10,2) NOT NULL,
+  fecha DATE NOT NULL,
+  creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_gastos_fecha (fecha),
+  CONSTRAINT chk_gastos_monto CHECK (monto >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
 -- Vistas para reportes
 -- ------------------------------------------------------------
 CREATE OR REPLACE VIEW vw_ventas AS
@@ -168,25 +185,25 @@ ORDER BY stock ASC;
 -- Datos iniciales: categorías
 -- ------------------------------------------------------------
 INSERT INTO categorias (id, nombre, icono) VALUES
-('audifonos-cable', 'Audífonos con cable', '🎧'),
-('audifonos-inalambricos', 'Audífonos inalámbricos', '🎵'),
-('cables', 'Cables', '🔌'),
-('cargadores', 'Cargadores', '⚡'),
-('fundas', 'Fundas', '📱'),
-('relojes', 'Relojes', '⌚'),
-('otros', 'Otros', '🧩');
+('audifonos-cable', 'Audífonos con cable', 'headphones'),
+('audifonos-inalambricos', 'Audífonos inalámbricos', 'music'),
+('cables', 'Cables', 'plug'),
+('cargadores', 'Cargadores', 'zap'),
+('fundas', 'Fundas', 'smartphone'),
+('relojes', 'Relojes', 'watch'),
+('otros', 'Otros', 'shapes');
 
 -- ------------------------------------------------------------
 -- Datos iniciales: productos
 -- ------------------------------------------------------------
-INSERT INTO productos (id, nombre, categoria_id, precio, stock, imagen) VALUES
-(1, 'EarPods con conector Lightning', 'audifonos-cable', 70.00, 12, 'img/audifonos-cable.jpg'),
-(2, 'Audífonos Bluetooth con estuche de carga', 'audifonos-inalambricos', 250.00, 8, 'img/audifonos-inalambricos.jpeg'),
-(3, 'Cable USB-C a Lightning 1 m', 'cables', 50.00, 25, 'img/cable-tipo-c.jpeg'),
-(4, 'Cargador de pared 20 W USB-C', 'cargadores', 70.00, 15, 'img/cargador-lightning.jpeg'),
-(5, 'Funda transparente con MagSafe', 'fundas', 50.00, 3, 'img/fundas-transparentes.jpeg'),
-(6, 'Reloj inteligente con llamadas', 'relojes', 450.00, 5, 'img/reloj.jpeg'),
-(7, 'Funda de color', 'fundas', 100.00, 20, 'img/funda.jpg');
+INSERT INTO productos (id, nombre, categoria_id, precio, costo, stock, imagen) VALUES
+(1, 'EarPods con conector Lightning', 'audifonos-cable', 70.00, 25.00, 12, 'img/audifonos-cable.jpg'),
+(2, 'Audífonos Bluetooth con estuche de carga', 'audifonos-inalambricos', 250.00, 113.00, 8, 'img/audifonos-inalambricos.jpeg'),
+(3, 'Cable USB-C a Lightning 1 m', 'cables', 50.00, 10.00, 25, 'img/cable-tipo-c.jpeg'),
+(4, 'Cargador de pared 20 W USB-C', 'cargadores', 70.00, 25.00, 15, 'img/cargador-lightning.jpeg'),
+(5, 'Funda transparente con MagSafe', 'fundas', 50.00, 13.50, 3, 'img/fundas-transparentes.jpeg'),
+(6, 'Reloj inteligente con llamadas', 'relojes', 450.00, 220.00, 5, 'img/reloj.jpeg'),
+(7, 'Funda de color', 'fundas', 100.00, 35.00, 20, 'img/funda.jpg');
 
 -- ------------------------------------------------------------
 -- Datos iniciales: variantes de productos
