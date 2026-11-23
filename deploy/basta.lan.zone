@@ -1,0 +1,12 @@
+$TTL 86400
+@       IN SOA  servidor.basta.lan. root.basta.lan. (
+                2026112301
+                3600
+                600
+                604800
+                86400 )
+        IN NS   servidor.basta.lan.
+        IN A    192.168.10.1
+servidor IN A   192.168.10.1
+www      IN A   192.168.10.1
+jshop    IN A   192.168.10.1

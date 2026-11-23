@@ -1,0 +1,13 @@
+zone "basta.lan" IN {
+    type master;
+    file "/var/named/basta.lan.zone";
+    allow-query { localhost; 192.168.10.0/24; };
+    allow-transfer { none; };
+};
+
+zone "10.168.192.in-addr.arpa" IN {
+    type master;
+    file "/var/named/10.168.192.in-addr.arpa.zone";
+    allow-query { localhost; 192.168.10.0/24; };
+    allow-transfer { none; };
+};

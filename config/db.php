@@ -1,15 +1,16 @@
 <?php
 declare(strict_types=1);
 
-/**
- * Conexión a MySQL / MariaDB de XAMPP.
- * Ajusta estas constantes si tu instalación usa otro usuario o contraseña.
- */
-const DB_HOST = 'localhost';
-const DB_NAME = 'jshop_db';
-const DB_USER = 'root';
-const DB_PASS = '';
-const DB_CHARSET = 'utf8mb4';
+$local = __DIR__ . '/db.local.php';
+if (is_file($local)) {
+    require $local;
+}
+
+if (!defined('DB_HOST')) define('DB_HOST', '127.0.0.1');
+if (!defined('DB_NAME')) define('DB_NAME', 'jshop_db');
+if (!defined('DB_USER')) define('DB_USER', 'jshop');
+if (!defined('DB_PASS')) define('DB_PASS', '');
+if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
 
 function db(): PDO
 {
@@ -32,7 +33,7 @@ function db(): PDO
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
             'ok' => false,
-            'error' => 'No se pudo conectar a la base de datos. Verifica que MySQL esté encendido en XAMPP y que la base jshop_db exista.',
+            'error' => 'No se pudo conectar a la base de datos. Verifica que MariaDB esté activo y que la base jshop_db exista.',
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }

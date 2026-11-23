@@ -24,14 +24,14 @@ const API = {
     try {
       respuesta = await fetch(url, config);
     } catch (e) {
-      throw new Error("No se pudo conectar con el servidor. ¿Están Apache y MySQL encendidos en XAMPP?");
+      throw new Error("No se pudo conectar con el servidor. Verifica que Apache y MariaDB estén activos.");
     }
 
     let datos;
     try {
       datos = await respuesta.json();
     } catch (e) {
-      throw new Error("El servidor devolvió una respuesta no válida. Revisa que el proyecto esté en htdocs y que la base de datos exista.");
+      throw new Error("El servidor devolvió una respuesta no válida. Revisa la configuración del sitio y de la base de datos.");
     }
 
     if (!respuesta.ok || !datos.ok) {
